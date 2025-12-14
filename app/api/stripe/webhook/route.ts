@@ -36,16 +36,6 @@ export async function POST(req: NextRequest) {
 
   let event: Stripe.Event;
 
-  // Debug logs before signature verification
-  console.log("[stripe webhook] has sig header:", !!sig);
-  console.log("[stripe webhook] sig starts:", sig?.slice(0, 12));
-  console.log("[stripe webhook] buf length:", buf.length);
-  console.log("[stripe webhook] secret length:", webhookSecret?.length);
-  console.log("[stripe webhook] secret starts:", webhookSecret?.slice(0, 6));
-  console.log("[stripe webhook] secret ends:", webhookSecret?.slice(-6));
-  console.log("[stripe webhook] secret starts/ends:", webhookSecret.slice(0, 6), webhookSecret.slice(-6));
-  console.log("[stripe webhook] sig starts:", sig.slice(0, 20));
-
   try {
     event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
   } catch (err: any) {
