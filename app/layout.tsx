@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { Source_Sans_3, Geist_Mono } from "next/font/google";
+import { Source_Sans_3, Geist_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import Header from "@/components/layout/Header";
 
 const sourceSans3 = Source_Sans_3({
   variable: "--font-sans",
@@ -11,6 +12,12 @@ const sourceSans3 = Source_Sans_3({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  variable: "--font-space-grotesk",
 });
 
 export const metadata: Metadata = {
@@ -26,8 +33,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${sourceSans3.variable} ${geistMono.variable} antialiased`}
+        className={`${sourceSans3.variable} ${geistMono.variable} ${spaceGrotesk.variable} antialiased`}
       >
+        <Header />
         {children}
       </body>
     </html>

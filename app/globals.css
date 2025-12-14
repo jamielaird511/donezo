@@ -20,3 +20,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
 }
+
+.font-space-grotesk {
+  font-family: var(--font-space-grotesk);
+}

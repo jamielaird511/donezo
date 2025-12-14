@@ -1,42 +1,11 @@
 import { Home as HomeIcon, Leaf, Wrench, Plus } from "lucide-react";
-import { Space_Grotesk } from "next/font/google";
-import Link from "next/link";
+import Image from "next/image";
 import Container from "@/components/layout/Container";
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  weight: ["600", "700"],
-  variable: "--font-space-grotesk",
-});
 
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col bg-white">
       <div className="relative z-10 flex flex-1 flex-col">
-        <header className="sticky top-0 z-50 w-full border-b border-[#E5E7EB] bg-white shadow-sm transition-all">
-          <Container className="grid grid-cols-3 items-center py-3">
-            <div className="flex h-14 items-center justify-center rounded-md bg-white px-5 justify-self-start">
-              <Link href="/">
-                <span className={`${spaceGrotesk.className} text-4xl font-extrabold tracking-wider text-[#7FCB00]`}>
-                  donezo.
-                </span>
-              </Link>
-            </div>
-
-            <nav className="hidden gap-6 text-sm text-[#0B1220] md:flex justify-self-center">
-              <a href="#services" className="transition-colors hover:text-[#111827] hover:underline">
-                Services
-              </a>
-            </nav>
-
-            <div className="justify-self-end">
-              <a href="/pro" className="rounded-md bg-[#7FCB00] px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-[#FFFFFF] transition-colors hover:bg-[#6FB800]">
-                Donezo Pro Login
-              </a>
-            </div>
-          </Container>
-        </header>
-
         <section id="services" className="flex flex-1 items-start">
           <Container className="pt-8 pb-8">
             <div className="flex flex-col">
@@ -52,7 +21,13 @@ export default function Home() {
                 </h1>
 
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                  <span className={`${spaceGrotesk.className} text-5xl sm:text-7xl text-[#7FCB00] font-bold tracking-wide leading-tight my-6`}>donezo.</span>
+                  <Image
+                    src="/brand/logo.svg"
+                    alt="donezo."
+                    width={320}
+                    height={104}
+                    className="my-6"
+                  />
                   <div className="flex justify-end sm:flex-1">
                     <a href="#booking" className="inline-flex items-center justify-center rounded-md bg-[#7FCB00] px-8 py-3 text-base font-semibold text-[#FFFFFF] transition-colors hover:bg-[#6FB800] shadow-md sm:w-auto">
                       Book now
@@ -246,18 +221,18 @@ export default function Home() {
         </section>
 
         {/* Donezo Pro provider enquiry */}
-        <section id="donezo-pro" aria-label="For service providers" className="border-t border-[#E5E7EB] bg-white py-12">
+        <section id="donezo-pro" aria-label="For service providers" className="border-t border-[#E5E7EB] bg-white py-8">
           <Container>
-            <div className="w-full rounded-md border border-[#E5E7EB] bg-[#F9FAFB] p-8 shadow-md md:p-10">
+            <div className="w-full rounded-md border border-[#E5E7EB] bg-[#F9FAFB] p-6 shadow-md md:p-8">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
                 <div className="flex flex-col gap-3">
-                  <h2 className="text-3xl sm:text-4xl font-semibold text-[#0B1220]">
+                  <h2 className="text-2xl sm:text-3xl font-semibold text-[#0B1220]">
                     Become a Donezo Pro
                   </h2>
-                  <p className="text-lg sm:text-xl text-[#374151] mt-2">
+                  <p className="text-base sm:text-lg text-[#374151] mt-2 leading-relaxed">
                     Fixed-price jobs. No quoting. Local customers.
                   </p>
-                  <p className="text-base sm:text-lg text-[#374151] max-w-xl">
+                  <p className="text-sm sm:text-base text-[#374151] max-w-xl leading-relaxed">
                     Join Donezo Pro and get paid jobs sent directly to you. Set your availability and accept work that suits you.
                   </p>
                   <p className="text-sm text-[#6B7280] mt-2">
@@ -266,7 +241,7 @@ export default function Home() {
                 </div>
                 <a 
                   href="/for-tradies"
-                  className="inline-flex items-center justify-center rounded-md bg-[#7FCB00] px-6 py-3 text-base font-medium text-[#FFFFFF] transition-colors hover:bg-[#6FB800] sm:w-auto"
+                  className="inline-flex items-center justify-center rounded-md bg-[#7FCB00] px-5 py-2 text-sm font-normal text-[#FFFFFF] transition-colors hover:bg-[#6FB800] sm:w-auto"
                 >
                   Enquire about Donezo Pro →
                 </a>
