@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
@@ -5,15 +7,13 @@ import Stripe from "stripe";
 // STRIPE_SECRET_KEY - Your Stripe secret key (starts with sk_)
 // STRIPE_WEBHOOK_SECRET - Your Stripe webhook signing secret (starts with whsec_)
 
-export const runtime = "nodejs"; // IMPORTANT
-
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
 
 export async function POST(req: NextRequest) {
-  let body: string;
+  let buf: Buffer;
 
   try {
-    body = await req.text(); // raw body
+    buf = Buffer.from(await req.arrayBuffer());
   } catch (err) {
     return NextResponse.json({ error: "Failed to read body" }, { status: 400 });
   }
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
   // Debug logs before signature verification
   console.log("[stripe webhook] has sig header:", !!sig);
   console.log("[stripe webhook] sig starts:", sig?.slice(0, 12));
-  console.log("[stripe webhook] body length:", body.length);
+  console.log("[stripe webhook] buf length:", buf.length);
   console.log("[stripe webhook] secret length:", webhookSecret?.length);
   console.log("[stripe webhook] secret starts:", webhookSecret?.slice(0, 6));
   console.log("[stripe webhook] secret ends:", webhookSecret?.slice(-6));
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
   console.log("[stripe webhook] sig starts:", sig.slice(0, 20));
 
   try {
-    event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+    event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
   } catch (err: any) {
     console.error("Webhook signature verification failed:", err.message);
     return NextResponse.json(
