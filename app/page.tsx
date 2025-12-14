@@ -22,7 +22,7 @@ export default function Home() {
                 </h1>
 
                 <div className="mt-6 lg:hidden">
-                  <a href="/gutter-cleaning" className="font-space-grotesk inline-flex items-center justify-center rounded-lg bg-[#7FCB00] px-12 py-4 text-lg font-semibold text-[#FFFFFF] transition-colors hover:bg-[#6FB800] shadow-md">
+                  <a href="/services" className="font-space-grotesk inline-flex items-center justify-center rounded-lg bg-[#7FCB00] px-12 py-4 text-lg font-semibold text-[#FFFFFF] transition-colors hover:bg-[#6FB800] shadow-md">
                     Book now
                   </a>
                 </div>
@@ -44,7 +44,7 @@ export default function Home() {
 
               {/* CTA positioned above Handyman jobs card (desktop only) */}
               <div className="hidden lg:block absolute top-1/2 -translate-y-1/2 left-[55%]">
-                <a href="/gutter-cleaning" className="font-space-grotesk inline-flex items-center justify-center rounded-lg bg-[#7FCB00] px-12 py-4 text-lg font-semibold text-[#FFFFFF] transition-colors hover:bg-[#6FB800] shadow-md">
+                <a href="/services" className="font-space-grotesk inline-flex items-center justify-center rounded-lg bg-[#7FCB00] px-12 py-4 text-lg font-semibold text-[#FFFFFF] transition-colors hover:bg-[#6FB800] shadow-md">
                   Book now
                 </a>
               </div>
@@ -52,28 +52,28 @@ export default function Home() {
               {/* Category tiles grid */}
               <div className="w-full grid grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* Home maintenance */}
-                <div className="h-32 flex flex-col items-center justify-center gap-3 rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-sm transition-all duration-150 ease-out cursor-default hover:border-[#D1D5DB] hover:shadow-md focus:border-[#D1D5DB] focus:shadow-md focus:outline-none">
+                <Link href="/services" className="h-32 flex flex-col items-center justify-center gap-3 rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-sm transition-all duration-150 ease-out hover:border-[#D1D5DB] hover:shadow-md focus:border-[#D1D5DB] focus:shadow-md focus:outline-none">
                   <HomeIcon className="h-9 w-9 text-[#111827] stroke-[1.5]" />
                   <span className="text-sm font-medium text-[#111827] text-center leading-tight">Home<br />maintenance</span>
-                </div>
+                </Link>
                 
                 {/* Garden services */}
-                <div className="h-32 flex flex-col items-center justify-center gap-3 rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-sm transition-all duration-150 ease-out cursor-default hover:border-[#D1D5DB] hover:shadow-md focus:border-[#D1D5DB] focus:shadow-md focus:outline-none">
+                <Link href="/services" className="h-32 flex flex-col items-center justify-center gap-3 rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-sm transition-all duration-150 ease-out hover:border-[#D1D5DB] hover:shadow-md focus:border-[#D1D5DB] focus:shadow-md focus:outline-none">
                   <Leaf className="h-9 w-9 text-[#111827] stroke-[1.5]" />
                   <span className="text-sm font-medium text-[#111827] text-center leading-tight">Garden services</span>
-                </div>
+                </Link>
                 
                 {/* Handyman jobs */}
-                <div className="h-32 flex flex-col items-center justify-center gap-3 rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-sm transition-all duration-150 ease-out cursor-default hover:border-[#D1D5DB] hover:shadow-md focus:border-[#D1D5DB] focus:shadow-md focus:outline-none">
+                <Link href="/services" className="h-32 flex flex-col items-center justify-center gap-3 rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-sm transition-all duration-150 ease-out hover:border-[#D1D5DB] hover:shadow-md focus:border-[#D1D5DB] focus:shadow-md focus:outline-none">
                   <Wrench className="h-9 w-9 text-[#111827] stroke-[1.5]" />
                   <span className="text-sm font-medium text-[#111827] text-center leading-tight">Handyman jobs</span>
-                </div>
+                </Link>
                 
                 {/* More services */}
-                <div className="h-32 flex flex-col items-center justify-center gap-3 rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-sm transition-all duration-150 ease-out cursor-default hover:border-[#D1D5DB] hover:shadow-md focus:border-[#D1D5DB] focus:shadow-md focus:outline-none">
+                <Link href="/services" className="h-32 flex flex-col items-center justify-center gap-3 rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-sm transition-all duration-150 ease-out hover:border-[#D1D5DB] hover:shadow-md focus:border-[#D1D5DB] focus:shadow-md focus:outline-none">
                   <Plus className="h-9 w-9 text-[#111827] stroke-[1.5]" />
                   <span className="text-sm font-medium text-[#111827] text-center leading-tight">More services</span>
-                </div>
+                </Link>
               </div>
             </div>
           </Container>
@@ -114,7 +114,7 @@ export default function Home() {
                   </p>
                 </div>
               </Link>
-              <a href="/gutter-cleaning" className="font-space-grotesk inline-flex items-center justify-center rounded-md bg-[#7FCB00] px-8 py-3 text-base font-semibold text-[#FFFFFF] transition-colors hover:bg-[#6FB800]">
+              <a href="/services" className="font-space-grotesk inline-flex items-center justify-center rounded-md bg-[#7FCB00] px-8 py-3 text-base font-semibold text-[#FFFFFF] transition-colors hover:bg-[#6FB800]">
                 Book now
               </a>
             </div>

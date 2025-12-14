@@ -19,9 +19,9 @@ export default function Header() {
         </div>
 
         <nav className="hidden gap-6 text-sm text-[#0B1220] md:flex justify-self-center">
-          <a href="#services" className="font-space-grotesk transition-colors hover:text-[#111827] hover:underline">
+          <Link href="/services" className="font-space-grotesk transition-colors hover:text-[#111827] hover:underline">
             Services
-          </a>
+          </Link>
         </nav>
 
         <div className="justify-self-end">
