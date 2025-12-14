@@ -43,6 +43,8 @@ export async function POST(req: NextRequest) {
   console.log("[stripe webhook] secret length:", webhookSecret?.length);
   console.log("[stripe webhook] secret starts:", webhookSecret?.slice(0, 6));
   console.log("[stripe webhook] secret ends:", webhookSecret?.slice(-6));
+  console.log("[stripe webhook] secret starts/ends:", webhookSecret.slice(0, 6), webhookSecret.slice(-6));
+  console.log("[stripe webhook] sig starts:", sig.slice(0, 20));
 
   try {
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
