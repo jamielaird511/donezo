@@ -30,12 +30,19 @@ function getServiceName(service: string): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { service, beds, storeys, customerEmail, metadata } = body;
+    const { service, beds, storeys, customerEmail, metadata, jobId } = body;
 
     // Validate required fields
     if (!service || !beds || !storeys || !customerEmail) {
       return NextResponse.json(
         { error: "Missing required fields: service, beds, storeys, or customerEmail" },
+        { status: 400 }
+      );
+    }
+
+    if (!jobId || typeof jobId !== "string") {
+      return NextResponse.json(
+        { error: "Missing required field: jobId" },
         { status: 400 }
       );
     }
@@ -65,21 +72,37 @@ export async function POST(request: NextRequest) {
     // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      payment_method_types: ["card"],
       customer_email: customerEmail,
+      client_reference_id: jobId,
       line_items: [
         {
           price_data: {
             currency: "nzd",
             product_data: {
-              name: serviceName,
+              name: `Donezo — ${serviceName}`,
+              description: "Fixed price • No quotes • Queenstown",
+              // Optional: add a public image URL (must be publicly accessible)
+              // images: [`${origin}/images/services/gutter-cleaning.jpg`],
             },
             unit_amount: Math.round(amountNZD * 100), // Convert to cents
           },
           quantity: 1,
         },
       ],
+      payment_intent_data: {
+        metadata: {
+          ...(metadata || {}),
+          service,
+          beds,
+          storeys,
+          amountNZD: amountNZD.toString(),
+          jobId: typeof jobId === "string" ? jobId : "",
+        },
+      },
       metadata: {
         ...(metadata || {}),
+        jobId,
         service,
         beds,
         storeys,

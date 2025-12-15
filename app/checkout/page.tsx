@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Container from "@/components/layout/Container";
 
@@ -35,8 +35,10 @@ interface BookingDraft {
   notes: string | null;
 }
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const jobId = searchParams.get("jobId");
   const [bookingDraft, setBookingDraft] = useState<BookingDraft | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,6 +60,10 @@ export default function CheckoutPage() {
 
   const handlePayAndBook = async () => {
     if (!bookingDraft || !bookingDraft.price) return;
+    if (!jobId) {
+      setError("Missing job reference. Please restart your booking.");
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -73,6 +79,7 @@ export default function CheckoutPage() {
           beds: bookingDraft.options?.beds || null,
           storeys: bookingDraft.options?.storeys || null,
           customerEmail: bookingDraft.customer.email,
+          jobId,
           metadata: {
             customer_name: `${bookingDraft.customer.firstName} ${bookingDraft.customer.lastName}`,
             customer_mobile: bookingDraft.customer.mobile || "",
@@ -141,10 +148,10 @@ export default function CheckoutPage() {
     <main className="flex min-h-screen flex-col bg-white">
       <div className="relative z-10 flex flex-1 flex-col">
         <section className="flex flex-1 items-start">
-          <Container className="pt-8 pb-16">
-            <div className="flex flex-col gap-8 max-w-2xl">
+          <Container className="pt-4 pb-8">
+            <div className="flex flex-col gap-5 max-w-2xl">
               <div className="flex flex-col gap-2">
-                <h1 className="text-4xl font-semibold tracking-[-0.01em] text-[#0B1220] sm:text-5xl leading-tight">
+                <h1 className="text-3xl font-semibold tracking-[-0.01em] text-[#0B1220] sm:text-4xl leading-snug">
                   Review your booking
                 </h1>
                 <p className="text-base text-[#374151]/70">
@@ -152,71 +159,77 @@ export default function CheckoutPage() {
                 </p>
               </div>
 
-              <div className="rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
-                <div className="flex flex-col gap-6">
-                  {/* Service */}
-                  <div className="flex flex-col gap-2">
-                    <h2 className="text-sm font-semibold text-[#6B7280] uppercase tracking-wide">
-                      Service
-                    </h2>
+              <div className="rounded-xl border border-[#E5E7EB] bg-white p-4 shadow-sm">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {/* Left column: Service and Price */}
+                  <div className="flex flex-col gap-4">
+                    {/* Service */}
                     <div className="flex flex-col gap-1">
-                      <p className="text-lg font-semibold text-[#0B1220]">{serviceName}</p>
-                      {(bedsLabel || storeysLabel) && (
-                        <p className="text-sm text-[#374151]/70">
-                          {[bedsLabel, storeysLabel].filter(Boolean).join(" • ")}
+                      <h2 className="text-sm font-semibold text-[#6B7280] uppercase tracking-wide">
+                        Service
+                      </h2>
+                      <div className="flex flex-col gap-1">
+                        <p className="text-lg font-semibold text-[#0B1220]">{serviceName}</p>
+                        {(bedsLabel || storeysLabel) && (
+                          <p className="text-sm text-[#374151]/70">
+                            {[bedsLabel, storeysLabel].filter(Boolean).join(" • ")}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Price */}
+                    {bookingDraft.price !== null && (
+                      <div className="flex flex-col gap-1">
+                        <h2 className="text-sm font-semibold text-[#6B7280] uppercase tracking-wide">
+                          Price
+                        </h2>
+                        <p className="text-3xl font-semibold text-[#0B1220]">
+                          ${bookingDraft.price}
                         </p>
-                      )}
-                    </div>
+                        <p className="text-sm text-[#374151]/70">
+                          Fixed price includes all Donezo platform services. No hidden fees.
+                        </p>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Price */}
-                  {bookingDraft.price !== null && (
-                    <div className="flex flex-col gap-2">
-                      <h2 className="text-sm font-semibold text-[#6B7280] uppercase tracking-wide">
-                        Price
-                      </h2>
-                      <p className="text-3xl font-semibold text-[#0B1220]">
-                        ${bookingDraft.price}
-                      </p>
-                      <p className="text-sm text-[#374151]/70">
-                        Fixed price includes all Donezo platform services. No hidden fees.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Customer details */}
-                  <div className="flex flex-col gap-2">
-                    <h2 className="text-sm font-semibold text-[#6B7280] uppercase tracking-wide">
-                      Customer details
-                    </h2>
+                  {/* Right column: Customer details, Address, Notes */}
+                  <div className="flex flex-col gap-4">
+                    {/* Customer details */}
                     <div className="flex flex-col gap-1">
-                      <p className="text-base text-[#0B1220]">
-                        {bookingDraft.customer.firstName} {bookingDraft.customer.lastName}
-                      </p>
-                      <p className="text-sm text-[#374151]/70">{bookingDraft.customer.email}</p>
-                      <p className="text-sm text-[#374151]/70">{bookingDraft.customer.mobile}</p>
+                      <h2 className="text-sm font-semibold text-[#6B7280] uppercase tracking-wide">
+                        Customer details
+                      </h2>
+                      <div className="flex flex-col gap-1">
+                        <p className="text-base text-[#0B1220]">
+                          {bookingDraft.customer.firstName} {bookingDraft.customer.lastName}
+                        </p>
+                        <p className="text-sm text-[#374151]/70">{bookingDraft.customer.email}</p>
+                        <p className="text-sm text-[#374151]/70">{bookingDraft.customer.mobile}</p>
+                      </div>
                     </div>
+
+                    {/* Address */}
+                    {bookingDraft.address.formatted && (
+                      <div className="flex flex-col gap-1">
+                        <h2 className="text-sm font-semibold text-[#6B7280] uppercase tracking-wide">
+                          Address
+                        </h2>
+                        <p className="text-base text-[#0B1220]">{bookingDraft.address.formatted}</p>
+                      </div>
+                    )}
+
+                    {/* Notes */}
+                    {bookingDraft.notes && (
+                      <div className="flex flex-col gap-1">
+                        <h2 className="text-sm font-semibold text-[#6B7280] uppercase tracking-wide">
+                          Access notes
+                        </h2>
+                        <p className="text-base text-[#0B1220]">{bookingDraft.notes}</p>
+                      </div>
+                    )}
                   </div>
-
-                  {/* Address */}
-                  {bookingDraft.address.formatted && (
-                    <div className="flex flex-col gap-2">
-                      <h2 className="text-sm font-semibold text-[#6B7280] uppercase tracking-wide">
-                        Address
-                      </h2>
-                      <p className="text-base text-[#0B1220]">{bookingDraft.address.formatted}</p>
-                    </div>
-                  )}
-
-                  {/* Notes */}
-                  {bookingDraft.notes && (
-                    <div className="flex flex-col gap-2">
-                      <h2 className="text-sm font-semibold text-[#6B7280] uppercase tracking-wide">
-                        Access notes
-                      </h2>
-                      <p className="text-base text-[#0B1220]">{bookingDraft.notes}</p>
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -228,11 +241,11 @@ export default function CheckoutPage() {
               )}
 
               {/* Pay & book button */}
-              <div className="flex justify-start">
+              <div className="sticky bottom-0 bg-white/90 backdrop-blur border-t border-[#E5E7EB] py-3 sm:mt-0 mt-4">
                 <button
                   onClick={handlePayAndBook}
                   disabled={isLoading || !bookingDraft.price}
-                  className={`font-space-grotesk inline-flex items-center justify-center rounded-lg bg-[#7FCB00] px-12 py-4 text-lg font-semibold text-[#FFFFFF] transition-colors shadow-md ${
+                  className={`font-space-grotesk inline-flex items-center justify-center rounded-lg bg-[#7FCB00] px-10 py-3.5 text-base font-semibold text-[#FFFFFF] transition-colors shadow-md ${
                     isLoading || !bookingDraft.price
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:bg-[#6FB800] cursor-pointer"
@@ -246,6 +259,14 @@ export default function CheckoutPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={null}>
+      <CheckoutContent />
+    </Suspense>
   );
 }
 

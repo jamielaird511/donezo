@@ -2,12 +2,24 @@ export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { createClient } from "@supabase/supabase-js";
 
 // Required environment variables:
 // STRIPE_SECRET_KEY - Your Stripe secret key (starts with sk_)
 // STRIPE_WEBHOOK_SECRET - Your Stripe webhook signing secret (starts with whsec_)
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+
+function getSupabaseAdmin() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !key) {
+    throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in env.");
+  }
+
+  return createClient(url, key, { auth: { persistSession: false } });
+}
 
 export async function POST(req: NextRequest) {
   let buf: Buffer;
@@ -60,24 +72,56 @@ export async function POST(req: NextRequest) {
           expand: ["line_items", "customer_details"],
         });
 
-        // Log clean JSON block
-        const logData = {
-          session_id: session.id,
-          amount_total: session.amount_total,
-          currency: session.currency,
-          customer_email: session.customer_details?.email || session.customer_email,
-          metadata: session.metadata,
-          line_items: session.line_items?.data?.map((item) => ({
-            description: item.description,
-            quantity: item.quantity,
-            amount_total: item.amount_total,
-          })),
-        };
+        // Only process if payment is actually paid
+        if (session.payment_status !== "paid") {
+          console.log(`[${event.type}] Session ${session.id} payment_status: ${session.payment_status}, skipping`);
+          return NextResponse.json({ received: true });
+        }
 
-        console.log("Checkout session completed:");
-        console.log(JSON.stringify(logData, null, 2));
+        // Extract jobId from metadata first, then client_reference_id
+        const jobId =
+          (session.metadata?.jobId as string | undefined) ||
+          (session.client_reference_id as string | null) ||
+          undefined;
 
-        // TODO: Store booking to database here
+        if (!jobId) {
+          console.error(`[${event.type}] No jobId found on session ${session.id}`);
+          return NextResponse.json({ received: true });
+        }
+
+        const supabase = getSupabaseAdmin();
+
+        // Check current job status first (idempotent check)
+        const { data: currentJob } = await supabase
+          .from("jobs")
+          .select("status, paid_at")
+          .eq("id", jobId)
+          .single();
+
+        // Only update if not already paid
+        if (currentJob?.status === "paid" && currentJob?.paid_at) {
+          console.log(`[${event.type}] Job ${jobId} already paid, skipping update (session ${session.id})`);
+          return NextResponse.json({ received: true });
+        }
+
+        // Update job to paid
+        const { error: updateErr } = await supabase
+          .from("jobs")
+          .update({
+            status: "paid",
+            stripe_session_id: session.id,
+            stripe_payment_intent: session.payment_intent
+              ? String(session.payment_intent)
+              : null,
+            paid_at: new Date().toISOString(),
+          })
+          .eq("id", jobId);
+
+        if (updateErr) {
+          console.error(`[${event.type}] Failed to update job ${jobId} (session ${session.id}):`, updateErr);
+        } else {
+          console.log(`[${event.type}] ✅ Updated job ${jobId} -> paid (session ${session.id})`);
+        }
       } catch (error: any) {
         console.error("Error retrieving session details:", error.message);
         // Fallback to basic logging

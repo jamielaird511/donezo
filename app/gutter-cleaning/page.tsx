@@ -51,6 +51,8 @@ export default function GutterCleaningPage() {
   const [city, setCity] = useState("");
   const [postcode, setPostcode] = useState("");
   const [notes, setNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   
   const price = calculatePrice(homeSize, storeys);
   const isSelectionComplete = homeSize !== null && storeys !== null;
@@ -84,20 +86,74 @@ export default function GutterCleaningPage() {
     setAddressCountry(components.addressCountry);
   };
 
+  async function createJob(payload: {
+    customer_name: string;
+    customer_phone: string;
+    customer_email?: string | null;
+    address_text: string;
+    place_id?: string | null;
+    lat?: number | null;
+    lng?: number | null;
+    access_notes?: string | null;
+  }) {
+    const res = await fetch("/api/jobs/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        service_slug: "gutter-cleaning",
+        ...payload,
+      }),
+    });
 
-  const handleContinueStep2 = () => {
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      throw new Error(data?.error || "Failed to create job");
+    }
+
+    if (!data?.jobId) {
+      throw new Error("Job created but jobId missing");
+    }
+
+    return data.jobId as string;
+  }
+
+  const handleContinueStep2 = async () => {
     // Validate email before proceeding
     if (!isEmailValid) {
       setEmailTouched(true);
       return;
     }
     
-    if (canContinueStep2) {
+    if (!canContinueStep2 || isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
       const finalAddress = manualAddressMode
         ? `${streetAddress}, ${suburb}, ${city}${postcode ? ` ${postcode}` : ""}`
         : address;
-      
-      // Build booking draft with structured address fields
+
+      const accessNotesCombined = [
+        homeSize ? `Home size: ${homeSize}` : null,
+        storeys ? `Storeys: ${storeys}` : null,
+        notes?.trim() ? `Notes: ${notes.trim()}` : null,
+      ].filter(Boolean).join(". ");
+
+      const jobId = await createJob({
+        customer_name: `${firstName} ${lastName}`.trim(),
+        customer_phone: mobile,
+        customer_email: email || null,
+        address_text: finalAddress,
+        place_id: manualAddressMode ? null : placeId,
+        lat: manualAddressMode ? null : lat,
+        lng: manualAddressMode ? null : lng,
+        access_notes: accessNotesCombined || null,
+      });
+
       const bookingDraft = {
         service: "gutter_cleaning",
         options: {
@@ -127,10 +183,14 @@ export default function GutterCleaningPage() {
         },
         notes: notes || null,
       };
-      
-      // Save to localStorage and navigate to checkout
+
       localStorage.setItem("donezo_booking_draft", JSON.stringify(bookingDraft));
-      router.push("/checkout");
+      router.push(`/checkout?jobId=${jobId}`);
+    } catch (error: any) {
+      console.error("Error creating job:", error);
+      setSubmitError(error.message || "Failed to create booking. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -498,18 +558,25 @@ export default function GutterCleaningPage() {
 
               {/* Continue button */}
               {isSelectionComplete && (
-                <div className="flex justify-start">
-                  <button
-                    onClick={handleContinueStep2}
-                    disabled={!canContinueStep2}
-                    className={`font-space-grotesk inline-flex items-center justify-center rounded-lg bg-[#7FCB00] px-12 py-4 text-lg font-semibold text-[#FFFFFF] transition-colors shadow-md ${
-                      canContinueStep2
-                        ? "hover:bg-[#6FB800] cursor-pointer"
-                        : "opacity-50 cursor-not-allowed"
-                    }`}
-                  >
-                    Continue
-                  </button>
+                <div className="flex flex-col gap-4">
+                  {submitError && (
+                    <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+                      <p className="text-sm text-red-800">{submitError}</p>
+                    </div>
+                  )}
+                  <div className="flex justify-start">
+                    <button
+                      onClick={handleContinueStep2}
+                      disabled={!canContinueStep2 || isSubmitting}
+                      className={`font-space-grotesk inline-flex items-center justify-center rounded-lg bg-[#7FCB00] px-12 py-4 text-lg font-semibold text-[#FFFFFF] transition-colors shadow-md ${
+                        canContinueStep2 && !isSubmitting
+                          ? "hover:bg-[#6FB800] cursor-pointer"
+                          : "opacity-50 cursor-not-allowed"
+                      }`}
+                    >
+                      {isSubmitting ? "Creating booking..." : "Continue"}
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
