@@ -22,7 +22,7 @@ export default function Home() {
                 </h1>
 
                 <div className="mt-6 lg:hidden">
-                  <a href="/services" className="font-space-grotesk inline-flex items-center justify-center rounded-lg bg-[#7FCB00] px-12 py-4 text-lg font-semibold text-[#FFFFFF] transition-colors hover:bg-[#6FB800] shadow-md">
+                  <a href="/services" className="font-space-grotesk inline-flex items-center justify-center rounded-lg bg-donezo-orange px-12 py-4 text-lg font-semibold text-[#FFFFFF] transition-colors hover:opacity-90 shadow-md">
                     Book now
                   </a>
                 </div>
@@ -44,7 +44,7 @@ export default function Home() {
 
               {/* CTA positioned above Handyman jobs card (desktop only) */}
               <div className="hidden lg:block absolute top-1/2 -translate-y-1/2 left-[55%]">
-                <a href="/services" className="font-space-grotesk inline-flex items-center justify-center rounded-lg bg-[#7FCB00] px-12 py-4 text-lg font-semibold text-[#FFFFFF] transition-colors hover:bg-[#6FB800] shadow-md">
+                <a href="/services" className="font-space-grotesk inline-flex items-center justify-center rounded-lg bg-donezo-orange px-12 py-4 text-lg font-semibold text-[#FFFFFF] transition-colors hover:opacity-90 shadow-md">
                   Book now
                 </a>
               </div>
@@ -98,14 +98,14 @@ export default function Home() {
           {/* Content */}
           <Container className="relative z-10">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
-              <Link href="/gutter-cleaning" className="rounded-lg bg-[#F4FAEE] border-[3px] border-[#7ED321] shadow-lg px-4 py-4 sm:px-6 sm:py-5 block">
+              <Link href="/gutter-cleaning" className="rounded-lg bg-[#F4FAEE] border-[3px] border-donezo-orange shadow-lg px-4 py-4 sm:px-6 sm:py-5 block">
                 <div className="flex flex-col gap-3">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                     <h2 className="text-2xl sm:text-3xl font-semibold text-[#0B1220] drop-shadow-sm">
                       Gutter cleaning from $149
                     </h2>
                     <span className="inline-flex items-center gap-2 rounded-md bg-white border border-slate-300 px-3 py-1 text-xs font-medium text-slate-900 w-fit">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#7ED321]"></span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-donezo-orange"></span>
                       Live in Queenstown
                     </span>
                   </div>
@@ -114,7 +114,7 @@ export default function Home() {
                   </p>
                 </div>
               </Link>
-              <a href="/services" className="font-space-grotesk inline-flex items-center justify-center rounded-md bg-[#7FCB00] px-8 py-3 text-base font-semibold text-[#FFFFFF] transition-colors hover:bg-[#6FB800]">
+              <a href="/services" className="font-space-grotesk inline-flex items-center justify-center rounded-md bg-donezo-orange px-8 py-3 text-base font-semibold text-[#FFFFFF] transition-colors hover:opacity-90">
                 Book now
               </a>
             </div>
@@ -135,8 +135,8 @@ export default function Home() {
               </div>
 
               <div className="grid gap-6 sm:grid-cols-3">
-                <div className="relative flex flex-col gap-2.5 rounded-xl border-t-2 border-t-[#7FCB00] border border-[#E5E7EB] bg-white p-5 sm:p-6 shadow-sm transition-all duration-150 ease-out hover:border-[#D1D5DB] hover:shadow-md">
-                  <div className="absolute -top-2 -left-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#7FCB00] text-xs font-bold text-[#0B1220]">
+                <div className="relative flex flex-col gap-2.5 rounded-xl border-t-2 border-t-donezo-orange border border-[#E5E7EB] bg-white p-5 sm:p-6 shadow-sm transition-all duration-150 ease-out hover:border-[#D1D5DB] hover:shadow-md">
+                  <div className="absolute -top-2 -left-2 flex h-6 w-6 items-center justify-center rounded-full bg-donezo-orange text-xs font-bold text-[#0B1220]">
                     1
                   </div>
                   <p className="font-semibold text-[#0B1220]">Clear, upfront pricing.</p>
@@ -145,8 +145,8 @@ export default function Home() {
                   </p>
                 </div>
 
-                <div className="relative flex flex-col gap-2.5 rounded-xl border-t-2 border-t-[#7FCB00] border border-[#E5E7EB] bg-white p-5 sm:p-6 shadow-sm transition-all duration-150 ease-out hover:border-[#D1D5DB] hover:shadow-md">
-                  <div className="absolute -top-2 -left-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#7FCB00] text-xs font-bold text-[#0B1220]">
+                <div className="relative flex flex-col gap-2.5 rounded-xl border-t-2 border-t-donezo-orange border border-[#E5E7EB] bg-white p-5 sm:p-6 shadow-sm transition-all duration-150 ease-out hover:border-[#D1D5DB] hover:shadow-md">
+                  <div className="absolute -top-2 -left-2 flex h-6 w-6 items-center justify-center rounded-full bg-donezo-orange text-xs font-bold text-[#0B1220]">
                     2
                   </div>
                   <p className="font-semibold text-[#0B1220]">Pay once. We handle the rest.</p>
@@ -155,8 +155,8 @@ export default function Home() {
                   </p>
                 </div>
 
-                <div className="relative flex flex-col gap-2.5 rounded-xl border-t-2 border-t-[#7FCB00] border border-[#E5E7EB] bg-white p-5 sm:p-6 shadow-sm transition-all duration-150 ease-out hover:border-[#D1D5DB] hover:shadow-md">
-                  <div className="absolute -top-2 -left-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#7FCB00] text-xs font-bold text-[#0B1220]">
+                <div className="relative flex flex-col gap-2.5 rounded-xl border-t-2 border-t-donezo-orange border border-[#E5E7EB] bg-white p-5 sm:p-6 shadow-sm transition-all duration-150 ease-out hover:border-[#D1D5DB] hover:shadow-md">
+                  <div className="absolute -top-2 -left-2 flex h-6 w-6 items-center justify-center rounded-full bg-donezo-orange text-xs font-bold text-[#0B1220]">
                     3
                   </div>
                   <p className="font-semibold text-[#0B1220]">A local pro gets in touch.</p>
@@ -170,7 +170,7 @@ export default function Home() {
         </section>
 
         {/* Reassurance section */}
-        <section className="border-t border-[#E5E7EB] bg-[#7ED321] py-16">
+        <section className="border-t border-[#E5E7EB] bg-donezo-orange py-16">
           <Container>
             <div className="flex flex-col gap-6">
               <h2 className="text-2xl sm:text-3xl font-semibold text-white/95">
@@ -251,7 +251,7 @@ export default function Home() {
                 </div>
                 <a 
                   href="/for-tradies"
-                  className="inline-flex items-center justify-center rounded-md bg-[#7FCB00] px-6 py-2.5 text-sm font-semibold text-[#FFFFFF] transition-colors hover:bg-[#6FB800] sm:w-auto"
+                  className="inline-flex items-center justify-center rounded-md bg-donezo-orange px-6 py-2.5 text-sm font-semibold text-[#FFFFFF] transition-colors hover:opacity-90 sm:w-auto"
                 >
                   Enquire about Donezo Pro →
                 </a>

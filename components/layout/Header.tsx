@@ -25,7 +25,7 @@ export default function Header() {
         </nav>
 
         <div className="justify-self-end">
-          <a href="/pro" className="font-space-grotesk rounded-md bg-[#7FCB00] px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-[#FFFFFF] transition-colors hover:bg-[#6FB800]">
+          <a href="/pro" className="font-space-grotesk rounded-md bg-donezo-orange px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-[#FFFFFF] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donezo-orange/40">
             Donezo Pro Login
           </a>
         </div>

@@ -8,6 +8,8 @@ import AddressAutocomplete, { AddressComponents } from "@/components/AddressAuto
 
 type HomeSize = "1-2" | "3" | "4" | "5+" | null;
 type Storeys = "single" | "double" | null;
+type JobComplexity = "simple" | "medium" | "complex" | null;
+type Urgency = "not_urgent" | "soon" | "asap" | null;
 
 const basePricing: Record<string, number> = {
   "1-2": 129,
@@ -28,6 +30,8 @@ export default function GutterCleaningPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [homeSize, setHomeSize] = useState<HomeSize>(null);
   const [storeys, setStoreys] = useState<Storeys>(null);
+  const [jobComplexity, setJobComplexity] = useState<JobComplexity>(null);
+  const [urgency, setUrgency] = useState<Urgency>(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -95,6 +99,9 @@ export default function GutterCleaningPage() {
     lat?: number | null;
     lng?: number | null;
     access_notes?: string | null;
+    storeys?: string | null;
+    job_complexity?: string | null;
+    urgency?: string | null;
   }) {
     const res = await fetch("/api/jobs/create", {
       method: "POST",
@@ -152,6 +159,9 @@ export default function GutterCleaningPage() {
         lat: manualAddressMode ? null : lat,
         lng: manualAddressMode ? null : lng,
         access_notes: accessNotesCombined || null,
+        storeys: null,
+        job_complexity: jobComplexity,
+        urgency: urgency,
       });
 
       const bookingDraft = {
@@ -228,7 +238,7 @@ export default function GutterCleaningPage() {
                       onClick={() => setHomeSize(size)}
                       className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 p-4 transition-all duration-150 ease-out ${
                         homeSize === size
-                          ? "border-[#7ED321] bg-[#F4FAEE] shadow-sm"
+                          ? "border-donezo-orange bg-donezo-orange/10 shadow-sm"
                           : "border-[#E5E7EB] bg-white hover:border-[#D1D5DB] hover:shadow-sm"
                       }`}
                     >
@@ -255,7 +265,7 @@ export default function GutterCleaningPage() {
                       onClick={() => setStoreys(option.value)}
                       className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 p-4 transition-all duration-150 ease-out ${
                         storeys === option.value
-                          ? "border-[#7ED321] bg-[#F4FAEE] shadow-sm"
+                          ? "border-donezo-orange bg-donezo-orange/10 shadow-sm"
                           : "border-[#E5E7EB] bg-white hover:border-[#D1D5DB] hover:shadow-sm"
                       }`}
                     >
@@ -274,15 +284,12 @@ export default function GutterCleaningPage() {
 
               {/* Price summary */}
               {price !== null && (
-                <div className="rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-baseline justify-between">
-                      <span className="text-sm text-[#374151]/80">Your price</span>
-                      <span className="text-3xl font-semibold text-[#0B1220]">
-                        ${price}
-                      </span>
-                    </div>
-                    <p className="text-sm text-[#374151]/70">
+                <div className="mx-auto max-w-2xl my-8 rounded-xl bg-donezo-orange p-5 shadow-sm">
+                  <div className="flex flex-col items-center justify-center gap-3">
+                    <span className="text-5xl font-bold text-white">
+                      ${price}
+                    </span>
+                    <p className="text-xs text-white/80 text-center">
                       Fixed price includes all Donezo platform services. No hidden fees.
                     </p>
                   </div>
@@ -298,23 +305,13 @@ export default function GutterCleaningPage() {
                 }`}
               >
                 <div className="flex flex-col gap-6 pt-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col gap-1">
-                      <h2 className="text-lg font-semibold text-[#0B1220]">
-                        Your details
-                      </h2>
-                      <p className="text-sm text-[#374151]/70">
-                        We&apos;ll use this to confirm your booking and keep you updated.
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        window.scrollTo({ top: 0, behavior: "smooth" });
-                      }}
-                      className="text-sm text-[#374151]/70 hover:text-[#374151] underline"
-                    >
-                      Change home details
-                    </button>
+                  <div className="flex flex-col gap-1">
+                    <h2 className="text-lg font-semibold text-[#0B1220]">
+                      Your details
+                    </h2>
+                    <p className="text-sm text-[#374151]/70">
+                      We&apos;ll use this to confirm your booking and keep you updated.
+                    </p>
                   </div>
 
                   <div className="flex flex-col gap-4">
@@ -329,7 +326,7 @@ export default function GutterCleaningPage() {
                           value={firstName}
                           onChange={(e) => setFirstName(e.target.value)}
                           placeholder="Enter your first name"
-                          className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:border-[#7ED321] focus:outline-none focus:ring-2 focus:ring-[#7ED321]/20"
+                          className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:border-donezo-orange focus:outline-none focus:ring-2 focus:ring-donezo-orange/20"
                         />
                       </div>
 
@@ -343,7 +340,7 @@ export default function GutterCleaningPage() {
                           value={lastName}
                           onChange={(e) => setLastName(e.target.value)}
                           placeholder="Enter your last name"
-                          className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:border-[#7ED321] focus:outline-none focus:ring-2 focus:ring-[#7ED321]/20"
+                          className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:border-donezo-orange focus:outline-none focus:ring-2 focus:ring-donezo-orange/20"
                         />
                       </div>
                     </div>
@@ -367,7 +364,7 @@ export default function GutterCleaningPage() {
                         className={`rounded-xl border px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 ${
                           showEmailError
                             ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-500/20"
-                            : "border-[#E5E7EB] bg-white focus:border-[#7ED321] focus:ring-[#7ED321]/20"
+                            : "border-[#E5E7EB] bg-white focus:border-donezo-orange focus:ring-donezo-orange/20"
                         }`}
                       />
                       {showEmailError && (
@@ -387,7 +384,7 @@ export default function GutterCleaningPage() {
                         value={mobile}
                         onChange={(e) => setMobile(e.target.value)}
                         placeholder="Enter your mobile number"
-                        className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:border-[#7ED321] focus:outline-none focus:ring-2 focus:ring-[#7ED321]/20"
+                            className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:border-donezo-orange focus:outline-none focus:ring-2 focus:ring-donezo-orange/20"
                       />
                     </div>
                   </div>
@@ -419,7 +416,7 @@ export default function GutterCleaningPage() {
                             value={address}
                             onChange={handleAddressChange}
                             placeholder="Enter your address"
-                            className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:border-[#7ED321] focus:outline-none focus:ring-2 focus:ring-[#7ED321]/20"
+                            className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:border-donezo-orange focus:outline-none focus:ring-2 focus:ring-donezo-orange/20"
                           />
                         </div>
                         <button
@@ -457,7 +454,7 @@ export default function GutterCleaningPage() {
                               value={streetAddress}
                               onChange={(e) => setStreetAddress(e.target.value)}
                               placeholder="Enter street address"
-                              className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:border-[#7ED321] focus:outline-none focus:ring-2 focus:ring-[#7ED321]/20"
+                              className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:border-donezo-orange focus:outline-none focus:ring-2 focus:ring-donezo-orange/20"
                             />
                           </div>
 
@@ -471,7 +468,7 @@ export default function GutterCleaningPage() {
                               value={suburb}
                               onChange={(e) => setSuburb(e.target.value)}
                               placeholder="Enter suburb"
-                              className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:border-[#7ED321] focus:outline-none focus:ring-2 focus:ring-[#7ED321]/20"
+                              className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:border-donezo-orange focus:outline-none focus:ring-2 focus:ring-donezo-orange/20"
                             />
                           </div>
 
@@ -485,7 +482,7 @@ export default function GutterCleaningPage() {
                               value={city}
                               onChange={(e) => setCity(e.target.value)}
                               placeholder="Enter city"
-                              className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:border-[#7ED321] focus:outline-none focus:ring-2 focus:ring-[#7ED321]/20"
+                              className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:border-donezo-orange focus:outline-none focus:ring-2 focus:ring-donezo-orange/20"
                             />
                           </div>
 
@@ -499,7 +496,7 @@ export default function GutterCleaningPage() {
                               value={postcode}
                               onChange={(e) => setPostcode(e.target.value)}
                               placeholder="Enter postcode"
-                              className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:border-[#7ED321] focus:outline-none focus:ring-2 focus:ring-[#7ED321]/20"
+                              className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:border-donezo-orange focus:outline-none focus:ring-2 focus:ring-donezo-orange/20"
                             />
                           </div>
                         </div>
@@ -531,6 +528,89 @@ export default function GutterCleaningPage() {
                 </div>
               </div>
 
+              {/* Learning-focused quote inputs (optional, not used for pricing) */}
+              <div
+                className={`transition-all duration-300 overflow-hidden ${
+                  isSelectionComplete
+                    ? "max-h-[1200px] opacity-100"
+                    : "max-h-0 opacity-0"
+                }`}
+              >
+                <div className="flex flex-col gap-6 pt-4">
+                  <div className="flex flex-col gap-1">
+                    <h2 className="text-lg font-semibold text-[#0B1220]">
+                      Help us match the right provider <span className="text-[#6B7280] font-normal">(optional)</span>
+                    </h2>
+                    <p className="text-sm text-[#374151]/70">
+                      These questions don&apos;t change your price — they just help us plan access and assign the best team.
+                    </p>
+                  </div>
+
+                  {/* Job complexity */}
+                  <div className="flex flex-col gap-3">
+                    <span className="text-sm font-medium text-[#0B1220]">
+                      Job complexity
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {[
+                        {
+                          value: "simple" as JobComplexity,
+                          label: "Simple (straightforward gutters)",
+                        },
+                        {
+                          value: "medium" as JobComplexity,
+                          label: "Medium (corners / garage)",
+                        },
+                        {
+                          value: "complex" as JobComplexity,
+                          label: "Complex (multiple levels / angles)",
+                        },
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => setJobComplexity(option.value)}
+                          className={`flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-medium transition-all duration-150 ${
+                            jobComplexity === option.value
+                              ? "border-donezo-orange bg-donezo-orange/10 text-[#0B1220] shadow-sm"
+                              : "border-[#E5E7EB] bg-white text-[#111827] hover:border-[#D1D5DB] hover:shadow-sm"
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Urgency */}
+                  <div className="flex flex-col gap-3">
+                    <span className="text-sm font-medium text-[#0B1220]">
+                      Urgency
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {[
+                        { value: "not_urgent" as Urgency, label: "Not urgent" },
+                        { value: "soon" as Urgency, label: "Soon (1–2 weeks)" },
+                        { value: "asap" as Urgency, label: "ASAP" },
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => setUrgency(option.value)}
+                          className={`flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-medium transition-all duration-150 ${
+                            urgency === option.value
+                              ? "border-donezo-orange bg-donezo-orange/10 text-[#0B1220] shadow-sm"
+                              : "border-[#E5E7EB] bg-white text-[#111827] hover:border-[#D1D5DB] hover:shadow-sm"
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Access notes section */}
               <div
                 className={`transition-all duration-300 overflow-hidden ${
@@ -550,7 +630,7 @@ export default function GutterCleaningPage() {
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Gate code, pets, parking, etc."
                       rows={3}
-                      className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:border-[#7ED321] focus:outline-none focus:ring-2 focus:ring-[#7ED321]/20 resize-none"
+                      className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:border-donezo-orange focus:outline-none focus:ring-2 focus:ring-donezo-orange/20 resize-none"
                     />
                   </div>
                 </div>
@@ -568,13 +648,13 @@ export default function GutterCleaningPage() {
                     <button
                       onClick={handleContinueStep2}
                       disabled={!canContinueStep2 || isSubmitting}
-                      className={`font-space-grotesk inline-flex items-center justify-center rounded-lg bg-[#7FCB00] px-12 py-4 text-lg font-semibold text-[#FFFFFF] transition-colors shadow-md ${
+                      className={`font-space-grotesk inline-flex items-center justify-center rounded-lg bg-donezo-orange px-12 py-4 text-lg font-semibold text-[#FFFFFF] transition-opacity shadow-md ${
                         canContinueStep2 && !isSubmitting
-                          ? "hover:bg-[#6FB800] cursor-pointer"
+                          ? "hover:opacity-90 cursor-pointer"
                           : "opacity-50 cursor-not-allowed"
                       }`}
                     >
-                      {isSubmitting ? "Creating booking..." : "Continue"}
+                      {isSubmitting ? "Creating booking..." : "Continue booking"}
                     </button>
                   </div>
                 </div>

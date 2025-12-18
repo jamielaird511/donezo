@@ -245,13 +245,13 @@ function CheckoutContent() {
                 <button
                   onClick={handlePayAndBook}
                   disabled={isLoading || !bookingDraft.price}
-                  className={`font-space-grotesk inline-flex items-center justify-center rounded-lg bg-[#7FCB00] px-10 py-3.5 text-base font-semibold text-[#FFFFFF] transition-colors shadow-md ${
+                  className={`font-space-grotesk inline-flex items-center justify-center rounded-lg bg-donezo-orange px-10 py-3.5 text-base font-semibold text-[#FFFFFF] transition-opacity shadow-md ${
                     isLoading || !bookingDraft.price
                       ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-[#6FB800] cursor-pointer"
+                      : "hover:opacity-90 cursor-pointer"
                   }`}
                 >
-                  {isLoading ? "Processing..." : "Pay & book"}
+                  {isLoading ? "Processing..." : "Confirm & pay"}
                 </button>
               </div>
             </div>

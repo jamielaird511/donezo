@@ -77,7 +77,7 @@ export default function ServicesPage() {
                           </div>
                           <Link
                             href={`/${service.id}`}
-                            className="font-space-grotesk inline-flex items-center justify-center rounded-md bg-[#7FCB00] px-6 py-2.5 text-sm font-semibold text-[#FFFFFF] transition-colors hover:bg-[#6FB800] w-fit"
+                            className="font-space-grotesk inline-flex items-center justify-center rounded-md bg-donezo-orange px-6 py-2.5 text-sm font-semibold text-[#FFFFFF] transition-opacity hover:opacity-90 w-fit"
                           >
                             Select
                           </Link>

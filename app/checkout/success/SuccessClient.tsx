@@ -89,9 +89,9 @@ export default function SuccessClient() {
               <div className="flex justify-start">
                 <Link
                   href="/"
-                  className="font-space-grotesk inline-flex items-center justify-center rounded-lg bg-[#7FCB00] px-12 py-4 text-lg font-semibold text-[#FFFFFF] transition-colors shadow-md hover:bg-[#6FB800]"
+                  className="font-space-grotesk inline-flex items-center justify-center rounded-lg bg-donezo-orange px-12 py-4 text-lg font-semibold text-[#FFFFFF] transition-opacity shadow-md hover:opacity-90"
                 >
-                  Back to services
+                  Back to home
                 </Link>
               </div>
             </div>
