@@ -1,9 +1,22 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase/browser";
 import Container from "@/components/layout/Container";
 import PreHeroBanner from "@/components/PreHeroBanner";
 
 export default function Header() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const isProPage = pathname?.startsWith("/pro");
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/pro/login");
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full bg-white shadow-sm transition-all">
       <Container className="grid grid-cols-3 items-center py-2">
@@ -25,9 +38,18 @@ export default function Header() {
         </nav>
 
         <div className="justify-self-end">
-          <a href="/pro" className="font-space-grotesk rounded-md bg-donezo-orange px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-[#FFFFFF] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donezo-orange/40">
-            Donezo Pro Login
-          </a>
+          {isProPage ? (
+            <button
+              onClick={handleLogout}
+              className="font-space-grotesk rounded-md bg-donezo-orange px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-[#FFFFFF] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donezo-orange/40"
+            >
+              Log out
+            </button>
+          ) : (
+            <a href="/pro" className="font-space-grotesk rounded-md bg-donezo-orange px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-[#FFFFFF] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donezo-orange/40">
+              Donezo Pro Login
+            </a>
+          )}
         </div>
       </Container>
       <PreHeroBanner />
