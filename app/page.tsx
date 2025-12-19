@@ -235,7 +235,7 @@ export default function Home() {
                   </p>
                 </div>
                 <a 
-                  href="/for-tradies"
+                  href="/for-pros"
                   className="inline-flex items-center justify-center rounded-md bg-donezo-orange px-6 py-2.5 text-sm font-semibold text-[#FFFFFF] transition-colors hover:opacity-90 sm:w-auto"
                 >
                   Enquire about Donezo Pro →
@@ -244,15 +244,6 @@ export default function Home() {
             </div>
           </Container>
         </section>
-
-        <footer className="border-t border-[#E5E7EB] bg-white">
-          <Container className="flex items-center justify-between py-4 text-xs text-[#6B7280]">
-            <p>© {new Date().getFullYear()} donezo.</p>
-            <p className="hidden sm:block">
-              Built for busy people who just want it sorted.
-            </p>
-          </Container>
-        </footer>
       </div>
     </main>
   );
