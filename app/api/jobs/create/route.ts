@@ -200,7 +200,7 @@ export async function POST(req: Request) {
         sqm_source,
 
         access_notes,
-        status: "new",
+        status: "available",
 
         // parcel enrichment snapshot
         parcel_id: parcelEnrichment?.id ?? null,

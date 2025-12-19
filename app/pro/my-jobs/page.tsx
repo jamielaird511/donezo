@@ -250,7 +250,13 @@ export default function ProMyJobsPage() {
   };
 
   const handleConfirmStatusUpdate = async () => {
-    if (!jobToUpdateStatus || !newStatus || newStatus === jobToUpdateStatus.status) {
+    if (!jobToUpdateStatus || !newStatus) {
+      return;
+    }
+    
+    // Guard: if status is already the same, show message and return
+    if (newStatus === jobToUpdateStatus.status) {
+      setStatusUpdateMessage(`This job is already marked as ${getStatusLabel(jobToUpdateStatus.status)}.`);
       return;
     }
     
@@ -270,20 +276,35 @@ export default function ProMyJobsPage() {
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error || "Failed to update job status");
+        const errorMessage = data.error || "Failed to update job status";
+        
+        // Map specific errors to user-friendly messages
+        if (errorMessage.includes("Unauthorized") || response.status === 401) {
+          throw new Error("Your session expired. Please log out and log back in.");
+        } else if (errorMessage.includes("Invalid status transition") || errorMessage.includes("cannot transition")) {
+          throw new Error("That status change is no longer valid. Refresh the page and try again.");
+        } else {
+          throw new Error(errorMessage);
+        }
       }
       
-      // Update the job in local state
+      // Update the job in local state immediately
       setJobs((prevJobs) =>
         prevJobs.map((job) =>
           job.id === jobToUpdateStatus.id ? { ...job, status: newStatus } : job
         )
       );
       
-      // Close the modal
-      setJobToUpdateStatus(null);
-      setNewStatus("");
-      setStatusUpdateMessage(null);
+      // Show success message
+      setStatusUpdateMessage(`Status updated to ${getStatusLabel(newStatus)}.`);
+      
+      // Close the modal after 800ms
+      setTimeout(() => {
+        setJobToUpdateStatus(null);
+        setNewStatus("");
+        setStatusUpdateMessage(null);
+        setStatusUpdateError(null);
+      }, 800);
     } catch (err) {
       setStatusUpdateError(err instanceof Error ? err.message : "Failed to update job status");
     } finally {
@@ -500,7 +521,7 @@ export default function ProMyJobsPage() {
                 <div>
                   <p className="text-sm font-medium text-[#6B7280] mb-1">Service</p>
                   <p className="text-base text-[#0B1220]">
-                    {selectedJob.service_slug.replace("-", " ")}
+                    {formatServiceName(selectedJob.service_slug)}
                   </p>
                 </div>
 
@@ -633,8 +654,8 @@ export default function ProMyJobsPage() {
                     setStatusUpdateMessage(null);
                     setStatusUpdateError(null);
                   }}
-                  className="text-[#6B7280] hover:text-[#0B1220] text-xl leading-none"
-                  disabled={isUpdatingStatus}
+                  className="text-[#6B7280] hover:text-[#0B1220] text-xl leading-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isUpdatingStatus || !!statusUpdateMessage}
                 >
                   ✕
                 </button>

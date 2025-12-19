@@ -1,9 +1,5 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase/browser";
+import { createClient } from "@/lib/supabase/server";
 import Container from "@/components/layout/Container";
 
 interface ProProfile {
@@ -16,33 +12,34 @@ interface ProProfile {
   created_at: string;
 }
 
-export default function AdminProsPage() {
-  const router = useRouter();
-  const [pros, setPros] = useState<ProProfile[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default async function AdminProsPage() {
+  const supabase = await createClient();
 
-  useEffect(() => {
-    loadPros();
-  }, []);
+  // Get current user for debug logging
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const userId = user?.id || null;
 
-  const loadPros = async () => {
-    try {
-      setIsLoading(true);
-      const { data, error: prosError } = await supabase
-        .from("pro_profiles")
-        .select("*")
-        .order("created_at", { ascending: false });
+  // Debug: Log user and query details
+  console.log("[AdminPros] Current user ID:", userId);
+  console.log("[AdminPros] Query: from('pro_profiles').select('*').order('created_at', { ascending: false })");
 
-      if (prosError) throw prosError;
-      setPros(data || []);
-    } catch (err: any) {
-      console.error("Error loading pros:", err);
-      setError(err.message || "Failed to load pros");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Fetch pro profiles
+  const { data: pros, error: prosError } = await supabase
+    .from("pro_profiles")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  // Debug: Log results
+  if (prosError) {
+    console.error("[AdminPros] Query error:", {
+      message: prosError.message,
+      code: prosError.code,
+      details: prosError.details,
+      hint: prosError.hint,
+    });
+  } else {
+    console.log("[AdminPros] Query success - row count:", pros?.length || 0);
+  }
 
 
   const formatDate = (dateString: string) => {
@@ -70,16 +67,26 @@ export default function AdminProsPage() {
             </Link>
           </div>
 
-          {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-              <p className="text-sm text-red-800">{error}</p>
+          {/* Dev-only debug error box */}
+          {process.env.NODE_ENV !== "production" && prosError && (
+            <div className="rounded-lg border border-orange-300 bg-orange-50 p-4">
+              <p className="text-sm font-semibold text-orange-900 mb-2">Debug (dev only)</p>
+              <div className="text-xs text-orange-800 space-y-1">
+                <p><strong>Error message:</strong> {prosError.message}</p>
+                {prosError.code && <p><strong>Error code:</strong> {prosError.code}</p>}
+                {(prosError.message?.toLowerCase().includes("permission denied") || prosError.code === "42501") && (
+                  <p className="mt-2 text-orange-900 font-medium">⚠️ This looks like an RLS/permission denied error. Check admin_users table and RLS policies.</p>
+                )}
+              </div>
             </div>
           )}
 
           {/* Pros List */}
-          {isLoading ? (
-            <p className="text-base text-[#374151]/70">Loading pros...</p>
-          ) : pros.length === 0 ? (
+          {prosError ? (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+              <p className="text-sm text-red-800">Failed to load pros: {prosError.message}</p>
+            </div>
+          ) : !pros || pros.length === 0 ? (
             <p className="text-base text-[#374151]/70">No pro profiles found.</p>
           ) : (
             <div className="overflow-x-auto">

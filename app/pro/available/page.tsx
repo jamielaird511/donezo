@@ -181,6 +181,63 @@ export default function ProAvailablePage() {
       .join(" ");
   };
 
+  const toTitleCase = (str: string) => {
+    return str
+      .split(/[\s-]+/)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  };
+
+  const formatAccessNotes = (accessNotes: string | null): string => {
+    if (!accessNotes) return "—";
+
+    const parts: string[] = [];
+
+    // Extract bedrooms from "Home size: 3" pattern
+    const homeSizeMatch = accessNotes.match(/Home size:\s*(\d+)/i);
+    if (homeSizeMatch) {
+      const bedrooms = parseInt(homeSizeMatch[1], 10);
+      parts.push(`${bedrooms} bedrooms`);
+    }
+
+    // Extract storeys from "Storeys: single" or "Storeys: double" pattern
+    const storeysMatch = accessNotes.match(/Storeys:\s*(\w+)/i);
+    if (storeysMatch) {
+      const storeyValue = storeysMatch[1].toLowerCase();
+      if (storeyValue === "single") {
+        parts.push("Single storey");
+      } else if (storeyValue === "double" || storeyValue === "split") {
+        parts.push("Double storey / split-level");
+      } else {
+        parts.push(toTitleCase(storeyValue) + " storey");
+      }
+    }
+
+    // Extract notes (anything after "Notes:" or remaining text)
+    const notesMatch = accessNotes.match(/Notes:\s*(.+)/i);
+    if (notesMatch) {
+      const notesText = notesMatch[1].trim();
+      if (notesText) {
+        parts.push(`Notes: ${notesText}`);
+      }
+    } else {
+      // If no "Notes:" label but there's remaining text after structured parts, treat as notes
+      let remainingText = accessNotes;
+      if (homeSizeMatch) {
+        remainingText = remainingText.replace(/Home size:\s*\d+/i, "").trim();
+      }
+      if (storeysMatch) {
+        remainingText = remainingText.replace(/Storeys:\s*\w+/i, "").trim();
+      }
+      remainingText = remainingText.replace(/^[.\s]+|[.\s]+$/g, "").trim();
+      if (remainingText && !remainingText.match(/^Notes?:/i)) {
+        parts.push(`Notes: ${remainingText}`);
+      }
+    }
+
+    return parts.length > 0 ? parts.join(" • ") : "—";
+  };
+
   const parsePropertySummary = (accessNotes: string | null) => {
     if (!accessNotes) return { bedroomLabel: null, storeyLabel: null };
 
@@ -448,7 +505,7 @@ export default function ProAvailablePage() {
                 <div>
                   <p className="text-sm font-medium text-[#6B7280] mb-1">Service</p>
                   <p className="text-base text-[#0B1220]">
-                    {selectedJob.service_slug.replace("-", " ")}
+                    {formatServiceName(selectedJob.service_slug)}
                   </p>
                 </div>
 
@@ -457,12 +514,12 @@ export default function ProAvailablePage() {
                   <p className="text-base text-[#0B1220]">{selectedJob.address_text}</p>
                 </div>
 
-                {selectedJob.access_notes && (
-                  <div>
-                    <p className="text-sm font-medium text-[#6B7280] mb-1">Access notes</p>
-                    <p className="text-base text-[#0B1220]">{selectedJob.access_notes}</p>
-                  </div>
-                )}
+                <div>
+                  <p className="text-sm font-medium text-[#6B7280] mb-1">Access notes</p>
+                  <p className="text-base text-[#0B1220]">
+                    {formatAccessNotes(selectedJob.access_notes)}
+                  </p>
+                </div>
 
                 <div>
                   <p className="text-sm font-medium text-[#6B7280] mb-1">Posted</p>

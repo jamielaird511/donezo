@@ -1,6 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
 import { NextRequest } from "next/server";
-import { cookies } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
 
 function badRequest(message: string, details?: unknown) {
   return Response.json({ error: message, details }, { status: 400 });
@@ -34,47 +33,25 @@ export async function POST(
   { params }: { params: Promise<{ jobId: string }> | { jobId: string } }
 ) {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    // Create Supabase server client with cookies
+    const supabase = await createClient();
 
-    if (!supabaseUrl || !supabaseAnonKey) {
-      return serverError("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY in env.");
+    // Debug logging (non-production only)
+    if (process.env.NODE_ENV !== "production") {
+      const pathname = req.nextUrl.pathname;
+      const cookieNames = req.cookies.getAll().map(c => c.name);
+      console.log("[API]", pathname, "cookies:", cookieNames);
     }
-
-    // Create Supabase client with session from request headers/cookies
-    const cookieStore = await cookies();
-    const authHeader = req.headers.get("authorization");
-    
-    // Try to get access token from Authorization header or cookies
-    let accessToken: string | undefined;
-    if (authHeader?.startsWith("Bearer ")) {
-      accessToken = authHeader.substring(7);
-    } else {
-      // Try to find Supabase auth cookie
-      const allCookies = cookieStore.getAll();
-      for (const cookie of allCookies) {
-        if (cookie.name.includes("supabase.auth") || cookie.name.includes("sb-")) {
-          try {
-            const parsed = JSON.parse(cookie.value);
-            accessToken = parsed?.access_token || parsed?.token;
-            if (accessToken) break;
-          } catch {
-            // Not JSON, continue
-          }
-        }
-      }
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: accessToken ? {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      } : {},
-    });
 
     // Get authenticated user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    // Debug logging (non-production only)
+    if (process.env.NODE_ENV !== "production") {
+      const pathname = req.nextUrl.pathname;
+      console.log("[API]", pathname, "user?", !!user, "err:", userError?.message);
+    }
+
     if (userError || !user) {
       return unauthorized();
     }

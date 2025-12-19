@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase/browser";
 import Container from "@/components/layout/Container";
 
 export default function ProLayout({
@@ -18,9 +17,16 @@ export default function ProLayout({
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      await supabase.auth.signOut();
+      const response = await fetch("/api/pro/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Logout failed");
+      }
+
       router.replace("/pro/login");
-      router.refresh();
     } catch (err) {
       console.error("Logout error:", err);
     } finally {
