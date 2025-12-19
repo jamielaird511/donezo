@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/browser";
@@ -13,30 +13,24 @@ export default function ProLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push("/pro/login");
-        return;
-      }
-      setIsAuthenticated(true);
-    };
-    checkAuth();
-  }, [router]);
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await supabase.auth.signOut();
+      router.replace("/pro/login");
+      router.refresh();
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
-  if (isAuthenticated === null) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-base text-[#374151]/70">Loading...</p>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return null; // Will redirect
+  // Bypass layout on login page
+  if (pathname === "/pro/login") {
+    return <>{children}</>;
   }
 
   const navItems = [
@@ -49,20 +43,33 @@ export default function ProLayout({
     <div className="flex min-h-screen flex-col bg-white">
       <div className="border-b border-[#E5E7EB] bg-white">
         <Container>
-          <nav className="flex gap-6 py-4">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`text-sm font-medium transition-colors ${
-                  pathname === item.href
-                    ? "text-donezo-orange border-b-2 border-donezo-orange pb-1"
-                    : "text-[#6B7280] hover:text-[#0B1220]"
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
+          <nav className="flex items-center justify-between gap-6 py-4">
+            <div className="flex gap-6">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`text-sm font-medium transition-colors ${
+                    pathname === item.href
+                      ? "text-donezo-orange border-b-2 border-donezo-orange pb-1"
+                      : "text-[#6B7280] hover:text-[#0B1220]"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className={`inline-flex items-center justify-center rounded-lg bg-donezo-orange px-4 py-2 text-sm font-semibold text-white transition-opacity ${
+                isLoggingOut
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:opacity-90"
+              }`}
+            >
+              {isLoggingOut ? "Logging out..." : "Log out"}
+            </button>
           </nav>
         </Container>
       </div>

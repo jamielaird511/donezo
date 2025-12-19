@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/browser";
+import { useState, useEffect, useMemo } from "react";
+import { createClient } from "@/lib/supabase/client";
 import Container from "@/components/layout/Container";
 
 interface ProProfile {
@@ -11,55 +10,42 @@ interface ProProfile {
 }
 
 export default function ProProfilePage() {
-  const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const supabase = useMemo(() => createClient(), []);
   const [profile, setProfile] = useState<ProProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    checkAuth();
+    loadProfile();
   }, []);
 
-  useEffect(() => {
-    if (user) {
-      loadProfile();
-    }
-  }, [user]);
-
-  const checkAuth = async () => {
+  const loadProfile = async () => {
     try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) {
-        router.push("/pro/login");
+      setIsLoading(true);
+      // TODO: Replace with server API route to fetch profile data
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsLoading(false);
         return;
       }
-      setUser(currentUser);
-    } catch (err) {
-      console.error("Auth check error:", err);
-      router.push("/pro/login");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  const loadProfile = async () => {
-    if (!user) return;
-
-    try {
       const { data, error } = await supabase
         .from("pro_profiles")
         .select("business_name, trade_type")
-        .eq("user_id", user.id)
-        .single();
+        .eq("id", user.id)
+        .maybeSingle();
 
-      if (error && error.code !== "PGRST116") {
-        // PGRST116 is "not found" - that's okay
+      // Treat "not found" or null data as "no profile yet" (not an error)
+      if (error && error.code === "PGRST116") {
+        setProfile(null);
+      } else if (error) {
         console.error("Error loading profile:", error);
       } else {
         setProfile(data);
       }
     } catch (err) {
       console.error("Error loading profile:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -71,10 +57,6 @@ export default function ProProfilePage() {
         </Container>
       </main>
     );
-  }
-
-  if (!user) {
-    return null;
   }
 
   return (

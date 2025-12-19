@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/browser";
+import { useState, useEffect, useMemo } from "react";
+import { createClient } from "@/lib/supabase/client";
 import Container from "@/components/layout/Container";
 import { displayCity } from "@/lib/location/displayName";
 
@@ -17,8 +16,7 @@ interface Job {
 }
 
 export default function ProAvailablePage() {
-  const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const supabase = useMemo(() => createClient(), []);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -26,35 +24,55 @@ export default function ProAvailablePage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string>("all");
   const [selectedJobType, setSelectedJobType] = useState<string>("all");
+  const [homeCity, setHomeCity] = useState<string | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
   useEffect(() => {
-    checkAuth();
+    loadProProfile();
+    loadJobs();
   }, []);
 
-  useEffect(() => {
-    if (user) {
-      loadJobs();
-    }
-  }, [user]);
-
-  const checkAuth = async () => {
+  const loadProProfile = async () => {
     try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) {
-        router.push("/pro/login");
+      setIsLoadingProfile(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error: profileError } = await supabase
+        .from("pro_profiles")
+        .select("home_city")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      // Treat "not found" or null data as "no profile yet" (not an error)
+      if (profileError && profileError.code === "PGRST116") {
         return;
       }
-      setUser(currentUser);
+      if (!data) {
+        return;
+      }
+
+      // Only log actual errors
+      if (profileError) {
+        console.error("Error loading pro profile:", profileError);
+        return;
+      }
+
+      if (data?.home_city) {
+        const normalizedCity = displayCity(data.home_city);
+        setHomeCity(normalizedCity);
+        setSelectedCity(normalizedCity);
+      }
     } catch (err) {
-      console.error("Auth check error:", err);
-      router.push("/pro/login");
+      console.error("Error loading pro profile:", err);
     } finally {
-      setIsLoading(false);
+      setIsLoadingProfile(false);
     }
   };
 
   const loadJobs = async () => {
     try {
+      setIsLoading(true);
       const { data, error: jobsError } = await supabase
         .from("jobs")
         .select("id, created_at, service_slug, address_text, access_notes, status, pro_id")
@@ -67,16 +85,25 @@ export default function ProAvailablePage() {
     } catch (err: any) {
       console.error("Error loading jobs:", err);
       setError(err.message || "Failed to load jobs");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleAcceptJob = async () => {
-    if (!user || !selectedJob) return;
+    if (!selectedJob) return;
 
     setIsAccepting(true);
     setError(null);
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError("You must be logged in to accept jobs");
+        setIsAccepting(false);
+        return;
+      }
+
       const { data, error: updateError } = await supabase
         .from("jobs")
         .update({ pro_id: user.id, status: "assigned" })
@@ -254,10 +281,6 @@ export default function ProAvailablePage() {
         </Container>
       </main>
     );
-  }
-
-  if (!user) {
-    return null;
   }
 
   return (

@@ -1,15 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase/browser";
 import Container from "@/components/layout/Container";
 
-export default function ProLoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          // Check if user is admin
+          const { data: adminData, error: adminError } = await supabase
+            .from("admin_users")
+            .select("user_id")
+            .eq("user_id", session.user.id)
+            .single();
+
+          if (!adminError && adminData) {
+            router.replace("/admin");
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("Session check error:", err);
+      } finally {
+        setIsChecking(false);
+      }
+    };
+    checkSession();
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,29 +45,55 @@ export default function ProLoginPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/pro/login", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        console.error("login error:", data?.error);
-        setError(data?.error || "Login failed");
+      if (signInError) {
+        setError(signInError.message);
+        setIsLoading(false);
         return;
       }
 
-      console.log("login ok");
-      router.replace("/pro/available");
-    } catch (err) {
-      console.error("login exception:", err);
-      setError("Login failed. Please try again.");
-    } finally {
+      if (data.user) {
+        // Check admin status
+        const { data: adminData, error: adminError } = await supabase
+          .from("admin_users")
+          .select("user_id")
+          .eq("user_id", data.user.id)
+          .single();
+
+        if (adminError || !adminData) {
+          // Not authorized - sign out and show error
+          await supabase.auth.signOut();
+          setError("Not authorized");
+          setIsLoading(false);
+          return;
+        }
+
+        // Admin confirmed - redirect to admin dashboard
+        router.push("/admin");
+      }
+    } catch (err: any) {
+      setError(err.message || "An error occurred during login");
       setIsLoading(false);
     }
   };
+
+  if (isChecking) {
+    return (
+      <main className="flex min-h-screen flex-col bg-white">
+        <div className="relative z-10 flex flex-1 flex-col">
+          <section className="flex flex-1 items-start">
+            <Container className="py-16">
+              <p className="text-base text-[#374151]/70">Loading...</p>
+            </Container>
+          </section>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="flex min-h-screen flex-col bg-white">
@@ -49,10 +103,10 @@ export default function ProLoginPage() {
             <div className="flex flex-col gap-8 max-w-md">
               <div className="flex flex-col gap-2">
                 <h1 className="text-4xl font-semibold tracking-[-0.01em] text-[#0B1220] sm:text-5xl leading-tight">
-                  Donezo Pro Login
+                  Admin Login
                 </h1>
                 <p className="text-base text-[#374151]/70">
-                  Sign in to access your dashboard
+                  Sign in to access the admin portal
                 </p>
               </div>
 

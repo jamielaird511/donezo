@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/browser";
+import { useState, useEffect, useMemo } from "react";
+import { createClient } from "@/lib/supabase/client";
 import Container from "@/components/layout/Container";
 import { displayCity } from "@/lib/location/displayName";
 
@@ -30,8 +29,7 @@ interface Job {
 }
 
 export default function ProMyJobsPage() {
-  const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const supabase = useMemo(() => createClient(), []);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,35 +43,20 @@ export default function ProMyJobsPage() {
   const [statusUpdateError, setStatusUpdateError] = useState<string | null>(null);
 
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  useEffect(() => {
-    if (user) {
-      loadJobs();
-    }
-  }, [user, showClosed]);
-
-  const checkAuth = async () => {
-    try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) {
-        router.push("/pro/login");
-        return;
-      }
-      setUser(currentUser);
-    } catch (err) {
-      console.error("Auth check error:", err);
-      router.push("/pro/login");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    loadJobs();
+  }, [showClosed]);
 
   const loadJobs = async () => {
-    if (!user) return;
-
     try {
+      setIsLoading(true);
+      // TODO: Replace with server API call to get user's jobs
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setError("You must be logged in to view your jobs");
+        setIsLoading(false);
+        return;
+      }
+
       let query = supabase
         .from("jobs")
         .select("id, created_at, service_slug, address_text, access_notes, status, pro_id, customers(first_name, last_name, full_name, phone, email)")
@@ -94,6 +77,8 @@ export default function ProMyJobsPage() {
     } catch (err: any) {
       console.error("Error loading jobs:", err);
       setError(err.message || "Failed to load jobs");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -333,10 +318,6 @@ export default function ProMyJobsPage() {
         </Container>
       </main>
     );
-  }
-
-  if (!user) {
-    return null;
   }
 
   return (

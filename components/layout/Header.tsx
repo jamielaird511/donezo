@@ -6,14 +6,70 @@ import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/browser";
 import Container from "@/components/layout/Container";
 import PreHeroBanner from "@/components/PreHeroBanner";
+import { useState, useEffect } from "react";
 
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const isProPage = pathname?.startsWith("/pro");
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isChecking, setIsChecking] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isCheckingAdmin, setIsCheckingAdmin] = useState<boolean>(true);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  useEffect(() => {
+    if (isProPage) {
+      checkAuth();
+    }
+  }, [isProPage]);
+
+  useEffect(() => {
+    checkAdmin();
+  }, []);
+
+  const checkAuth = async () => {
+    setIsChecking(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+    } catch (err) {
+      setIsAuthenticated(false);
+    } finally {
+      setIsChecking(false);
+    }
+  };
+
+  const checkAdmin = async () => {
+    setIsCheckingAdmin(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+
+      const { data: adminData, error: adminError } = await supabase
+        .from("admin_users")
+        .select("user_id")
+        .eq("user_id", user.id)
+        .single();
+
+      setIsAdmin(!adminError && !!adminData);
+    } catch (err) {
+      setIsAdmin(false);
+    } finally {
+      setIsCheckingAdmin(false);
+    }
+  };
+
+  const handleLoginClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    // If on /pro/* route and authenticated, sign out first
+    if (isProPage && isAuthenticated) {
+      await supabase.auth.signOut();
+    }
+    
     router.push("/pro/login");
   };
 
@@ -37,19 +93,21 @@ export default function Header() {
           </Link>
         </nav>
 
-        <div className="justify-self-end">
-          {isProPage ? (
-            <button
-              onClick={handleLogout}
+        <div className="justify-self-end flex items-center gap-3">
+          {!isCheckingAdmin && isAdmin && (
+            <Link
+              href="/admin"
               className="font-space-grotesk rounded-md bg-donezo-orange px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-[#FFFFFF] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donezo-orange/40"
             >
-              Log out
-            </button>
-          ) : (
-            <a href="/pro" className="font-space-grotesk rounded-md bg-donezo-orange px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-[#FFFFFF] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donezo-orange/40">
-              Donezo Pro Login
-            </a>
+              Admin
+            </Link>
           )}
+          <button
+            onClick={handleLoginClick}
+            className="font-space-grotesk rounded-md bg-donezo-orange px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-[#FFFFFF] transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donezo-orange/40"
+          >
+            Donezo Pro Login
+          </button>
         </div>
       </Container>
       <PreHeroBanner />
