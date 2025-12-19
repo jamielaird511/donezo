@@ -5,8 +5,8 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/browser";
 import Container from "@/components/layout/Container";
-import PreHeroBanner from "@/components/PreHeroBanner";
 import { useState, useEffect } from "react";
+import { Menu, X } from "lucide-react";
 
 export default function Header() {
   const pathname = usePathname();
@@ -16,6 +16,7 @@ export default function Header() {
   const [isChecking, setIsChecking] = useState(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isCheckingAdmin, setIsCheckingAdmin] = useState<boolean>(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (isProPage) {
@@ -70,11 +71,16 @@ export default function Header() {
       await supabase.auth.signOut();
     }
     
+    setIsMobileMenuOpen(false);
     router.push("/pro/login");
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   return (
-    <header className="sticky top-0 z-50 w-full bg-white shadow-sm transition-all">
+    <header className="sticky top-0 z-50 w-full bg-white border-b border-[#E5E7EB] transition-all">
       <Container className="grid grid-cols-3 items-center py-2">
         <div className="flex h-10 items-center justify-center justify-self-start">
           <Link href="/" className="inline-flex items-center">
@@ -93,7 +99,8 @@ export default function Header() {
           </Link>
         </nav>
 
-        <div className="justify-self-end flex items-center gap-3">
+        {/* Desktop: Admin and Pro Login buttons */}
+        <div className="hidden md:flex justify-self-end items-center gap-3">
           {!isCheckingAdmin && isAdmin && (
             <Link
               href="/admin"
@@ -109,8 +116,54 @@ export default function Header() {
             Donezo Pro Login
           </button>
         </div>
+
+        {/* Mobile: Hamburger menu button */}
+        <div className="flex md:hidden justify-self-end items-center">
+          <button
+            onClick={toggleMobileMenu}
+            className="p-2 text-[#0B1220] transition-colors hover:text-[#111827] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donezo-orange/40 rounded-md"
+            aria-label="Toggle menu"
+          >
+            {isMobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </button>
+        </div>
       </Container>
-      <PreHeroBanner />
+
+      {/* Mobile menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden border-t border-[#E5E7EB] bg-white">
+          <Container className="py-4">
+            <nav className="flex flex-col gap-4">
+              <Link
+                href="/services"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="font-space-grotesk text-sm text-[#0B1220] transition-colors hover:text-[#111827] hover:underline"
+              >
+                Services
+              </Link>
+              {!isCheckingAdmin && isAdmin && (
+                <Link
+                  href="/admin"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="font-space-grotesk rounded-md bg-donezo-orange px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[#FFFFFF] transition-opacity hover:opacity-90 w-fit"
+                >
+                  Admin
+                </Link>
+              )}
+              <button
+                onClick={handleLoginClick}
+                className="font-space-grotesk rounded-md bg-donezo-orange px-4 py-2 text-xs font-semibold uppercase tracking-wide text-[#FFFFFF] transition-opacity hover:opacity-90 w-fit text-left"
+              >
+                Donezo Pro Login
+              </button>
+            </nav>
+          </Container>
+        </div>
+      )}
     </header>
   );
 }
