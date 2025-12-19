@@ -1,9 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { supabase } from "@/lib/supabase/browser";
+import { useState } from "react";
 import Container from "@/components/layout/Container";
 
 interface Job {
@@ -15,94 +12,47 @@ interface Job {
   pro_id: string | null;
 }
 
-export default function AdminPage() {
-  const router = useRouter();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [isChecking, setIsChecking] = useState(true);
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+interface AdminDashboardClientProps {
+  initialJobs: Job[];
+}
+
+export default function AdminDashboardClient({ initialJobs }: AdminDashboardClientProps) {
+  const [jobs, setJobs] = useState<Job[]>(initialJobs);
   const [error, setError] = useState<string | null>(null);
   const [updatingJobId, setUpdatingJobId] = useState<string | null>(null);
-  const [statusUpdates, setStatusUpdates] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    checkAdmin();
-  }, []);
-
-  useEffect(() => {
-    if (isAdmin) {
-      loadJobs();
-    }
-  }, [isAdmin]);
-
-  const checkAdmin = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        setIsAdmin(false);
-        setIsChecking(false);
-        return;
-      }
-
-      // Check if user is in admin_users table
-      const { data: adminData, error: adminError } = await supabase
-        .from("admin_users")
-        .select("user_id")
-        .eq("user_id", user.id)
-        .single();
-
-      if (adminError || !adminData) {
-        setIsAdmin(false);
-      } else {
-        setIsAdmin(true);
-      }
-    } catch (err) {
-      console.error("Admin check error:", err);
-      setIsAdmin(false);
-    } finally {
-      setIsChecking(false);
-    }
-  };
-
-  const loadJobs = async () => {
-    try {
-      setIsLoading(true);
-      const { data, error: jobsError } = await supabase
-        .from("jobs")
-        .select("id, created_at, service_slug, address_text, status, pro_id")
-        .order("created_at", { ascending: false });
-
-      if (jobsError) throw jobsError;
-      setJobs(data || []);
-      
-      // Initialize status updates with current statuses
-      const initialUpdates: Record<string, string> = {};
-      (data || []).forEach((job) => {
-        initialUpdates[job.id] = job.status;
-      });
-      setStatusUpdates(initialUpdates);
-    } catch (err: any) {
-      console.error("Error loading jobs:", err);
-      setError(err.message || "Failed to load jobs");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [statusUpdates, setStatusUpdates] = useState<Record<string, string>>(() => {
+    // Initialize status updates with current statuses
+    const initial: Record<string, string> = {};
+    initialJobs.forEach((job) => {
+      initial[job.id] = job.status;
+    });
+    return initial;
+  });
 
   const handleStatusUpdate = async (jobId: string) => {
     const newStatus = statusUpdates[jobId];
     if (!newStatus) return;
 
     setUpdatingJobId(jobId);
+    setError(null);
     try {
-      const { error: updateError } = await supabase
-        .from("jobs")
-        .update({ status: newStatus })
-        .eq("id", jobId);
+      const response = await fetch(`/api/admin/jobs/${jobId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ status: newStatus }),
+      });
 
-      if (updateError) throw updateError;
-      await loadJobs();
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update job status");
+      }
+
+      // Reload page to refresh jobs list
+      window.location.reload();
     } catch (err: any) {
       console.error("Error updating job status:", err);
       setError(err.message || "Failed to update job status");
@@ -153,33 +103,6 @@ export default function AdminPage() {
     });
   };
 
-  if (isChecking) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-base text-[#374151]/70">Loading...</p>
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Container>
-          <div className="flex flex-col gap-4 items-center">
-            <h1 className="text-2xl font-semibold text-[#0B1220]">Not authorized</h1>
-            <p className="text-base text-[#374151]/70">You do not have access to the admin portal.</p>
-            <Link
-              href="/pro/login"
-              className="inline-flex items-center justify-center rounded-lg bg-donezo-orange px-6 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-            >
-              Back to Login
-            </Link>
-          </div>
-        </Container>
-      </div>
-    );
-  }
-
   return (
     <main className="flex flex-1 flex-col">
       <Container className="py-8">
@@ -195,9 +118,7 @@ export default function AdminPage() {
             </div>
           )}
 
-          {isLoading ? (
-            <p className="text-base text-[#374151]/70">Loading jobs...</p>
-          ) : jobs.length === 0 ? (
+          {jobs.length === 0 ? (
             <p className="text-base text-[#374151]/70">No jobs found.</p>
           ) : (
             <div className="overflow-x-auto">

@@ -1,43 +1,41 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/browser";
+import { createClient } from "@/lib/supabase/client";
 import Container from "@/components/layout/Container";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const supabase = useMemo(() => createClient(), []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isChecking, setIsChecking] = useState(true);
+  const didRedirect = useRef(false);
 
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          // Check if user is admin
-          const { data: adminData, error: adminError } = await supabase
-            .from("admin_users")
-            .select("user_id")
-            .eq("user_id", session.user.id)
-            .single();
+    console.log("AdminLogin mounted");
 
-          if (!adminError && adminData) {
-            router.replace("/admin");
-            return;
-          }
+    // Check if already authenticated and redirect once
+    const checkAuth = async () => {
+      if (didRedirect.current) return;
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          didRedirect.current = true;
+          console.log("AdminLogin redirecting to /admin");
+          router.replace("/admin");
         }
       } catch (err) {
-        console.error("Session check error:", err);
-      } finally {
-        setIsChecking(false);
+        // Ignore errors - user is not authenticated
       }
     };
-    checkSession();
-  }, [router]);
+
+    checkAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps - only run once on mount
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,55 +43,30 @@ export default function AdminLoginPage() {
     setIsLoading(true);
 
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
       });
 
-      if (signInError) {
-        setError(signInError.message);
-        setIsLoading(false);
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setError(data.error || "Login failed");
         return;
       }
 
-      if (data.user) {
-        // Check admin status
-        const { data: adminData, error: adminError } = await supabase
-          .from("admin_users")
-          .select("user_id")
-          .eq("user_id", data.user.id)
-          .single();
-
-        if (adminError || !adminData) {
-          // Not authorized - sign out and show error
-          await supabase.auth.signOut();
-          setError("Not authorized");
-          setIsLoading(false);
-          return;
-        }
-
-        // Admin confirmed - redirect to admin dashboard
-        router.push("/admin");
-      }
+      // Success - hard navigate to ensure cookies are set and persisted
+      window.location.assign("/admin");
     } catch (err: any) {
       setError(err.message || "An error occurred during login");
+    } finally {
       setIsLoading(false);
     }
   };
-
-  if (isChecking) {
-    return (
-      <main className="flex min-h-screen flex-col bg-white">
-        <div className="relative z-10 flex flex-1 flex-col">
-          <section className="flex flex-1 items-start">
-            <Container className="py-16">
-              <p className="text-base text-[#374151]/70">Loading...</p>
-            </Container>
-          </section>
-        </div>
-      </main>
-    );
-  }
 
   return (
     <main className="flex min-h-screen flex-col bg-white">
