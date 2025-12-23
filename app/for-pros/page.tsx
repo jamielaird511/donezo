@@ -25,9 +25,8 @@ export default function ForProsPage() {
                 Donezo sends you fixed-price jobs that make sense for your business — no quoting, no chasing, no surprises.
               </p>
               <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-                {/* TODO: Update href to pro onboarding form route when available */}
                 <a
-                  href="/contact"
+                  href="/for-pros/apply"
                   className="font-space-grotesk inline-flex items-center justify-center rounded-lg bg-donezo-orange px-8 py-4 text-base font-semibold text-[#FFFFFF] transition-colors hover:opacity-90 shadow-md"
                 >
                   Apply to become a Donezo Pro
@@ -180,9 +179,8 @@ export default function ForProsPage() {
               <h2 className="text-3xl sm:text-4xl font-semibold text-white">
                 Ready to join?
               </h2>
-              {/* TODO: Update href to pro onboarding form route when available */}
               <a
-                href="/contact"
+                href="/for-pros/apply"
                 className="mt-6 inline-flex items-center justify-center rounded-lg border-2 border-white px-8 py-3 text-base font-semibold text-white transition-colors hover:bg-white/10"
               >
                 Apply to become a Donezo Pro

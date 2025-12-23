@@ -244,6 +244,55 @@ export default function Home() {
             </div>
           </Container>
         </section>
+
+        {/* FAQs */}
+        <section className="border-t border-[#E5E7EB] bg-white py-16">
+          <Container>
+            <div className="flex flex-col gap-10 max-w-3xl mx-auto">
+              <h2 className="text-2xl sm:text-3xl font-semibold text-[#0B1220]">
+                Frequently Asked Questions
+              </h2>
+
+              <div className="flex flex-col gap-8">
+                <div className="flex flex-col gap-3">
+                  <h3 className="text-lg font-semibold text-[#0B1220]">
+                    Who actually does the work?
+                  </h3>
+                  <p className="text-base text-[#374151]/80 leading-relaxed">
+                    Donezo connects you with vetted local professionals. Services are carried out by independent providers.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <h3 className="text-lg font-semibold text-[#0B1220]">
+                    Does Donezo guarantee the work?
+                  </h3>
+                  <p className="text-base text-[#374151]/80 leading-relaxed">
+                    The professional you book is responsible for the work they carry out. Donezo handles pricing, booking, and payment, and helps coordinate next steps if something doesn&apos;t feel right.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <h3 className="text-lg font-semibold text-[#0B1220]">
+                    What happens if my home isn&apos;t a standard job?
+                  </h3>
+                  <p className="text-base text-[#374151]/80 leading-relaxed">
+                    Some larger or more complex homes need a quick site check to price accurately. In those cases, Donezo arranges next steps and comes back with a clear price before you decide.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <h3 className="text-lg font-semibold text-[#0B1220]">
+                    Can I talk to someone if I have a question?
+                  </h3>
+                  <p className="text-base text-[#374151]/80 leading-relaxed">
+                    Yes — Donezo stays involved throughout the booking and helps keep things moving.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Container>
+        </section>
       </div>
     </main>
   );

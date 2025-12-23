@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Container from "@/components/layout/Container";
 
 export default function ProLoginPage() {
@@ -105,6 +106,24 @@ export default function ProLoginPage() {
                   {isLoading ? "Signing in..." : "Sign in"}
                 </button>
               </form>
+
+              <div className="flex flex-col gap-2 mt-4 text-center">
+                <p className="text-sm text-[#6B7280]">
+                  Not a Donezo Pro yet?{" "}
+                  <Link
+                    href="/for-pros/apply"
+                    className="text-sm text-donezo-orange hover:underline"
+                  >
+                    Apply here
+                  </Link>
+                </p>
+                <Link
+                  href="/services"
+                  className="text-sm text-donezo-orange hover:underline"
+                >
+                  Back to services
+                </Link>
+              </div>
             </div>
           </Container>
         </section>

@@ -12,24 +12,22 @@ type JobComplexity = "simple" | "medium" | "complex" | null;
 type Urgency = "not_urgent" | "soon" | "asap" | null;
 
 const basePricing: Record<string, number> = {
-  "1-2": 129,
-  "3": 149,
-  "4": 169,
-  "5+": 189,
+  "1-2": 149,
+  "3": 169,
+  "4": 189,
 };
 
-function calculatePrice(homeSize: HomeSize, storeys: Storeys): number | null {
-  if (!homeSize || !storeys) return null;
-  const basePrice = basePricing[homeSize];
-  if (!basePrice) return null;
-  return storeys === "double" ? basePrice + 100 : basePrice;
+function calculatePrice(homeSize: HomeSize): number | null {
+  if (!homeSize) return null;
+  const price = basePricing[homeSize];
+  return price ?? null;
 }
 
 export default function GutterCleaningPage() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [homeSize, setHomeSize] = useState<HomeSize>(null);
-  const [storeys, setStoreys] = useState<Storeys>(null);
+  const [homeSize, setHomeSize] = useState<HomeSize>("1-2");
+  const [storeys, setStoreys] = useState<Storeys>("single");
   const [jobComplexity, setJobComplexity] = useState<JobComplexity>(null);
   const [urgency, setUrgency] = useState<Urgency>(null);
   const [firstName, setFirstName] = useState("");
@@ -55,11 +53,17 @@ export default function GutterCleaningPage() {
   const [city, setCity] = useState("");
   const [postcode, setPostcode] = useState("");
   const [notes, setNotes] = useState("");
+  const [accessIsStandard, setAccessIsStandard] = useState<boolean>(true);
+  const [accessNotes, setAccessNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   
-  const price = calculatePrice(homeSize, storeys);
+  const price = calculatePrice(homeSize);
   const isSelectionComplete = homeSize !== null && storeys !== null;
+  
+  // Eligibility check: eligible if bedrooms in { "1-2", "3", "4" } AND storeys === "single"
+  const isEligible = homeSize !== null && storeys !== null && 
+    ["1-2", "3", "4"].includes(homeSize) && storeys === "single";
   
   // Email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -99,6 +103,7 @@ export default function GutterCleaningPage() {
     lat?: number | null;
     lng?: number | null;
     access_notes?: string | null;
+    access_is_standard?: boolean;
     storeys?: string | null;
     job_complexity?: string | null;
     urgency?: string | null;
@@ -126,6 +131,11 @@ export default function GutterCleaningPage() {
   }
 
   const handleContinueStep2 = async () => {
+    // Prevent checkout for ineligible homes
+    if (!isEligible) {
+      return;
+    }
+    
     // Validate email before proceeding
     if (!isEmailValid) {
       setEmailTouched(true);
@@ -158,7 +168,8 @@ export default function GutterCleaningPage() {
         place_id: manualAddressMode ? null : placeId,
         lat: manualAddressMode ? null : lat,
         lng: manualAddressMode ? null : lng,
-        access_notes: accessNotesCombined || null,
+        access_notes: accessNotes?.trim() || null,
+        access_is_standard: accessIsStandard,
         storeys: null,
         job_complexity: jobComplexity,
         urgency: urgency,
@@ -192,6 +203,8 @@ export default function GutterCleaningPage() {
           country: manualAddressMode ? "" : addressCountry,
         },
         notes: notes || null,
+        access_is_standard: accessIsStandard,
+        access_notes: accessNotes?.trim() || null,
       };
 
       localStorage.setItem("donezo_booking_draft", JSON.stringify(bookingDraft));
@@ -282,8 +295,8 @@ export default function GutterCleaningPage() {
                 )}
               </div>
 
-              {/* Price summary */}
-              {price !== null && (
+              {/* Price summary - only show for eligible homes */}
+              {price !== null && isEligible && (
                 <div className="mx-auto max-w-2xl my-8 rounded-xl bg-donezo-orange p-5 shadow-sm">
                   <div className="flex flex-col items-center justify-center gap-3">
                     <span className="text-5xl font-bold text-white">
@@ -292,6 +305,23 @@ export default function GutterCleaningPage() {
                     <p className="text-xs text-white/80 text-center">
                       Fixed price includes all Donezo platform services. No hidden fees.
                     </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Ineligible message */}
+              {isSelectionComplete && !isEligible && (
+                <div className="mx-auto max-w-2xl my-8 rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
+                  <div className="flex flex-col gap-4">
+                    <p className="text-base text-[#0B1220]">
+                      This home needs a custom quote (we&apos;re rolling out standard homes first).
+                    </p>
+                    <Link
+                      href={`/custom-quote?bedrooms=${homeSize || ""}&storeys=${storeys || ""}`}
+                      className="font-space-grotesk inline-flex items-center justify-center rounded-lg bg-donezo-orange px-6 py-3 text-base font-semibold text-[#FFFFFF] transition-opacity hover:opacity-90 shadow-md w-fit"
+                    >
+                      Request a Custom Quote
+                    </Link>
                   </div>
                 </div>
               )}
@@ -611,7 +641,7 @@ export default function GutterCleaningPage() {
                 </div>
               </div>
 
-              {/* Access notes section */}
+              {/* Access disclosure section */}
               <div
                 className={`transition-all duration-300 overflow-hidden ${
                   isSelectionComplete
@@ -619,10 +649,66 @@ export default function GutterCleaningPage() {
                     : "max-h-0 opacity-0"
                 }`}
               >
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-6 pt-4">
+                  <div className="flex flex-col gap-1">
+                    <h2 className="text-lg font-semibold text-[#0B1220]">
+                      Access disclosure
+                    </h2>
+                    <p className="text-sm text-[#374151]/70">
+                      Help us understand access to your gutters.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <span className="text-sm font-medium text-[#0B1220]">
+                      Is access to all gutters standard and straightforward? <span className="text-red-600">*</span>
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setAccessIsStandard(true)}
+                        className={`flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-medium transition-all duration-150 ${
+                          accessIsStandard
+                            ? "border-donezo-orange bg-donezo-orange/10 text-[#0B1220] shadow-sm"
+                            : "border-[#E5E7EB] bg-white text-[#111827] hover:border-[#D1D5DB] hover:shadow-sm"
+                        }`}
+                      >
+                        Yes — standard residential access
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAccessIsStandard(false)}
+                        className={`flex items-center justify-center rounded-xl border px-4 py-3 text-sm font-medium transition-all duration-150 ${
+                          !accessIsStandard
+                            ? "border-donezo-orange bg-donezo-orange/10 text-[#0B1220] shadow-sm"
+                            : "border-[#E5E7EB] bg-white text-[#111827] hover:border-[#D1D5DB] hover:shadow-sm"
+                        }`}
+                      >
+                        No — access is restricted in at least one area
+                      </button>
+                    </div>
+                  </div>
+
+                  {!accessIsStandard && (
+                    <div className="flex flex-col gap-2">
+                      <label htmlFor="accessNotes" className="text-sm font-medium text-[#0B1220]">
+                        Access notes <span className="text-[#6B7280] font-normal">(optional)</span>
+                      </label>
+                      <textarea
+                        id="accessNotes"
+                        value={accessNotes}
+                        onChange={(e) => setAccessNotes(e.target.value)}
+                        placeholder="Steep section, retaining wall, narrow access, etc."
+                        rows={3}
+                        className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-base text-[#0B1220] placeholder:text-[#9CA3AF] focus:border-donezo-orange focus:outline-none focus:ring-2 focus:ring-donezo-orange/20 resize-none"
+                      />
+                    </div>
+                  )}
+
+                  {/* General access notes */}
                   <div className="flex flex-col gap-2">
                     <label htmlFor="notes" className="text-sm font-medium text-[#0B1220]">
-                      Access notes <span className="text-[#6B7280] font-normal">(optional)</span>
+                      Additional notes <span className="text-[#6B7280] font-normal">(optional)</span>
                     </label>
                     <textarea
                       id="notes"
@@ -636,8 +722,8 @@ export default function GutterCleaningPage() {
                 </div>
               </div>
 
-              {/* Continue button */}
-              {isSelectionComplete && (
+              {/* Continue button - only show for eligible homes */}
+              {isSelectionComplete && isEligible && (
                 <div className="flex flex-col gap-4">
                   {submitError && (
                     <div className="rounded-lg border border-red-200 bg-red-50 p-4">
@@ -666,4 +752,5 @@ export default function GutterCleaningPage() {
     </main>
   );
 }
+
 

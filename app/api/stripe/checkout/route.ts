@@ -9,10 +9,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
 
 // Server-side pricing logic
 const basePricing: Record<string, number> = {
-  "1-2": 129,
-  "3": 149,
-  "4": 169,
-  "5+": 189,
+  "1-2": 149,
+  "3": 169,
+  "4": 189,
 };
 
 function calculatePrice(beds: string | null, storeys: string | null): number | null {
@@ -30,7 +29,7 @@ function getServiceName(service: string): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { service, beds, storeys, customerEmail, metadata, jobId } = body;
+    const { service, beds, storeys, customerEmail, metadata, jobId, access_is_standard, access_notes } = body;
 
     // Validate required fields
     if (!service || !beds || !storeys || !customerEmail) {
@@ -98,6 +97,8 @@ export async function POST(request: NextRequest) {
           storeys,
           amountNZD: amountNZD.toString(),
           jobId: typeof jobId === "string" ? jobId : "",
+          access_is_standard: access_is_standard !== undefined ? String(access_is_standard) : "true",
+          access_notes: access_notes || "",
         },
       },
       metadata: {
@@ -107,6 +108,8 @@ export async function POST(request: NextRequest) {
         beds,
         storeys,
         amountNZD: amountNZD.toString(),
+        access_is_standard: access_is_standard !== undefined ? String(access_is_standard) : "true",
+        access_notes: access_notes || "",
       },
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/checkout/cancel`,

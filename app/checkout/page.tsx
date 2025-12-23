@@ -33,6 +33,8 @@ interface BookingDraft {
     country: string;
   };
   notes: string | null;
+  access_is_standard?: boolean;
+  access_notes?: string | null;
 }
 
 function CheckoutContent() {
@@ -83,7 +85,11 @@ function CheckoutContent() {
           metadata: {
             customer_name: `${bookingDraft.customer.firstName} ${bookingDraft.customer.lastName}`,
             customer_mobile: bookingDraft.customer.mobile || "",
+            access_is_standard: bookingDraft.access_is_standard !== undefined ? String(bookingDraft.access_is_standard) : "true",
+            access_notes: bookingDraft.access_notes || "",
           },
+          access_is_standard: bookingDraft.access_is_standard !== undefined ? bookingDraft.access_is_standard : true,
+          access_notes: bookingDraft.access_notes || null,
         }),
       });
 

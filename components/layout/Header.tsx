@@ -81,14 +81,15 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-[#E5E7EB] transition-all">
-      <Container className="grid grid-cols-3 items-center py-2">
-        <div className="flex h-10 items-center justify-center justify-self-start">
+      <Container className="grid grid-cols-3 items-center py-3">
+        <div className="flex h-14 items-center justify-center justify-self-start">
           <Link href="/" className="inline-flex items-center">
             <Image
               src="/brand/logo.svg"
               alt="donezo."
-              height={40}
-              width={122}
+              height={56}
+              width={171}
+              className="h-14 w-auto"
             />
           </Link>
         </div>

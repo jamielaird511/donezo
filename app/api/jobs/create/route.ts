@@ -16,6 +16,7 @@ type CreateJobPayload = {
   sqm_source?: "user_estimate" | "property_api" | "manual_override" | null;
 
   access_notes?: string | null;
+  access_is_standard?: boolean;
 
   // learning-focused quote inputs (optional)
   storeys?: string | null;
@@ -66,6 +67,7 @@ export async function POST(req: Request) {
     const sqm_source = body.sqm_source ?? null;
 
     const access_notes = (body.access_notes ?? null)?.toString().trim() || null;
+    const access_is_standard = body.access_is_standard ?? true;
 
     if (!service_slug) return badRequest("service_slug is required");
     if (!customer_name) return badRequest("customer_name is required");
@@ -199,7 +201,8 @@ export async function POST(req: Request) {
         sqm,
         sqm_source,
 
-        access_notes,
+        access_notes: access_notes || null,
+        access_is_standard: access_is_standard ?? true,
         status: "available",
 
         // parcel enrichment snapshot
